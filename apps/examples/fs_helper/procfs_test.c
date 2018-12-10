@@ -23,14 +23,11 @@
 /****************************************************************************
  * Included Files
  ****************************************************************************/
-#include <tinyara/config.h>
-
-#include <sys/types.h>
-#include <sys/mount.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <string.h>
+
+#include <tinyara/config.h>
 
 /****************************************************************************
  * Pre-processor Definitions

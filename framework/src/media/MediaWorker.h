@@ -19,10 +19,9 @@
 #ifndef __MEDIA_MEDIAWORKER_HPP
 #define __MEDIA_MEDIAWORKER_HPP
 
-#include <sys/types.h>
 #include <atomic>
 #include <mutex>
-
+#include <pthread.h>
 #include "MediaQueue.h"
 
 namespace media {
@@ -44,7 +43,6 @@ public:
 
 protected:
 	long mStacksize;
-	int mPriority;
 	const char *mThreadName;
 	virtual bool processLoop();
 

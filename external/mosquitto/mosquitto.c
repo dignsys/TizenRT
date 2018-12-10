@@ -36,7 +36,6 @@ Contributors:
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
-#include <strings.h>
 #ifndef WIN32
 #include <sys/select.h>
 #include <sys/time.h>

@@ -42,7 +42,6 @@ Contributors:
 #endif
 
 #include <string.h>
-#include <strings.h>
 #include <openssl/conf.h>
 #include <openssl/x509v3.h>
 #include <openssl/ssl.h>

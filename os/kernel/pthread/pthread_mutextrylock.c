@@ -56,7 +56,6 @@
 
 #include <tinyara/config.h>
 
-#include <sys/types.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <semaphore.h>

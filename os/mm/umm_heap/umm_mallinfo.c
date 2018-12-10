@@ -56,7 +56,6 @@
 
 #include <tinyara/config.h>
 #include <stdlib.h>
-#include <string.h>
 #include <tinyara/mm/mm.h>
 
 #if !defined(CONFIG_BUILD_PROTECTED) || !defined(__KERNEL__)
@@ -89,14 +88,8 @@
 
 struct mallinfo mallinfo(void)
 {
-	int heap_idx;
 	struct mallinfo info;
-#if CONFIG_MM_NHEAPS > 1
-	memset(&info, 0, sizeof(struct mallinfo));
-#endif
-	for (heap_idx = 0; heap_idx < CONFIG_MM_NHEAPS; heap_idx++) {
-		mm_mallinfo(&g_mmheap[heap_idx], &info);
-	}
+	mm_mallinfo(USR_HEAP, &info);
 	return info;
 }
 
@@ -104,11 +97,7 @@ struct mallinfo mallinfo(void)
 
 int mallinfo(struct mallinfo *info)
 {
-	int heap_idx;
-	for (heap_idx = 0; heap_idx < CONFIG_MM_NHEAPS; heap_idx++) {
-		mm_mallinfo(&g_mmheap[heap_idx], info);
-	}
-	return OK;
+	return mm_mallinfo(USR_HEAP, info);
 }
 
 #endif							/* CONFIG_CAN_PASS_STRUCTS */

@@ -34,9 +34,6 @@ int itc_media_FileInputDataSource_main(void);
 #ifdef CONFIG_MEDIA_RECORDER
 int itc_media_mediarecorder_main(void);
 int itc_media_fileoutputdatasource_main(void);
-int itc_media_bufferoutputdatasource_main(void);
-int itc_media_FocusRequest_main(void);
-int itc_media_FocusManager_main(void);
 #endif
 
 extern "C"
@@ -60,9 +57,6 @@ int itc_media_main(int argc, char *argv[])
 #ifdef CONFIG_MEDIA_RECORDER
 	itc_media_mediarecorder_main();
 	itc_media_fileoutputdatasource_main();
-	itc_media_FocusRequest_main();
-	itc_media_FocusManager_main();
-	itc_media_bufferoutputdatasource_main();
 #endif
 
 	(void)tc_handler(TC_END, "Media ITC");

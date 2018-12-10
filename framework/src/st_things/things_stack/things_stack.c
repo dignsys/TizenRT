@@ -18,7 +18,6 @@
 
 #define _POSIX_C_SOURCE 200809L
 #define _BSD_SOURCE				// for the usleep
-#include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -34,7 +33,6 @@
 #include "things_api.h"
 #include "things_types.h"
 #include "things_def.h"
-#include "things_iotivity_lock.h"
 #include "things_resource.h"
 
 #include "framework/things_common.h"
@@ -64,7 +62,7 @@
 #endif
 
 #define TAG "[things_stack]"
-#define SCAN_AP_INTERVAL 60
+
 typedef void *(*pthread_func_type)(void *);
 volatile static int is_things_module_initialized = 0;
 
@@ -73,8 +71,6 @@ typedef struct reset_args_s {
 	things_es_enrollee_reset_e resetType;
 } reset_args_s;
 
-static void *auto_scanning_loop(void);
-static pthread_t h_thread_things_scan_ap;
 
 things_server_builder_s *g_server_builder = NULL;
 things_request_handler_s *g_req_handler = NULL;
@@ -251,8 +247,6 @@ int things_initialize_stack(const char *json_path, bool *easysetup_completed)
 		return 0;
 	}
 
-	init_iotivity_api_lock();
-
 	if (things_network_initialize() != 0) {
 		THINGS_LOG_E(TAG, "ERROR things_network initialize");
 		things_free(abs_json_path);
@@ -294,8 +288,6 @@ int things_deinitialize_stack(void)
 
 	dm_termiate_module();
 
-	deinit_iotivity_api_lock();
-
 	is_things_module_initialized = 0;
 
 	return 1;
@@ -309,6 +301,7 @@ int things_start_stack(void)
 		THINGS_LOG_E(TAG, "Initialize failed. You must initialize it first.");
 		return 0;
 	}
+
 	// Enable Security Features
 #ifdef __SECURED__
 	int auty_type = AUTH_UNKNOW;
@@ -323,6 +316,7 @@ int things_start_stack(void)
 		auty_type = AUTH_RANDOM_PIN + AUTH_CERTIFICATE_CONFIRM;
 		break;
 	}
+
 	if (0 != sm_init_things_security(auty_type, dm_get_svrdb_file_path())) {
 		THINGS_LOG_E(TAG, "Failed to initialize OICSecurity features");
 		return 0;
@@ -376,14 +370,12 @@ int things_start_stack(void)
 		THINGS_LOG_E(TAG, "Failed to initialize Cloud");
 		return 0;
 	}
+
 	if (dm_get_easysetup_connectivity_type() == es_conn_type_softap) {
 		if (dm_is_es_complete() == false) {
 			if (!things_network_turn_on_soft_ap()) {
 				return 0;
 			}
-			//call wifi scan ap.
-			if (!things_start_scanning_ap())
-				return 0;
 		} else if (!things_network_connect_home_ap()) {
 			return 0;
 		}
@@ -393,27 +385,9 @@ int things_start_stack(void)
 		THINGS_LOG_E(TAG, "es_conn_type_Unknown");
 		return 0;
 	}
+
 	THINGS_LOG_V(TAG, "Stack Start Success");
 	return 1;
-}
-
-int things_start_scanning_ap()
-{
-	if (pthread_create_rtos(&h_thread_things_scan_ap, NULL, auto_scanning_loop, NULL, THINGS_STACK_AP_SCAN_THREAD) != 0) {
-		THINGS_LOG_E(TAG, "Failed to create thread");
-		return 0;
-	}
-	return 1;
-}
-
-static void *__attribute__((optimize("O0"))) auto_scanning_loop(void)
-{
-	while (!things_is_connected_ap()) {
-		if (!things_wifi_scan_ap())
-			return NULL;
-		// Wifi scan is doing in every 60sec.
-		sleep(SCAN_AP_INTERVAL);
-	}
 }
 
 int things_reset(void *remote_owner, things_es_enrollee_reset_e resetType)
@@ -442,16 +416,17 @@ int things_reset(void *remote_owner, things_es_enrollee_reset_e resetType)
 
 	pthread_mutex_lock(&m_thread_oic_reset);
 	if (b_thread_things_reset == false) {
+		b_thread_things_reset = true;
 		reset_args_s *args = (reset_args_s *) things_malloc(sizeof(reset_args_s));
 		if (args == NULL) {
 			THINGS_LOG_E(TAG, "Failed to allocate reset_args_s memory");
+			b_thread_things_reset = false;
 			res = -1;
 			goto GOTO_OUT;
 		}
 		args->remote_owner = (things_resource_s *) remote_owner;
 		args->resetType = resetType;
 
-		b_thread_things_reset = true;
 		b_reset_continue_flag = true;
 
 		if (pthread_create_rtos(&h_thread_things_reset, NULL, (pthread_func_type) t_things_reset_loop, args, THINGS_STACK_RESETLOOP_THREAD) != 0) {
@@ -459,7 +434,6 @@ int things_reset(void *remote_owner, things_es_enrollee_reset_e resetType)
 			h_thread_things_reset = 0;
 			things_free(args);
 			b_thread_things_reset = false;
-			b_reset_continue_flag = false;
 			res = -1;
 			goto GOTO_OUT;
 		}
@@ -482,7 +456,7 @@ GOTO_OUT:
 int things_stop_stack(void)
 {
 	THINGS_LOG_D(TAG, THINGS_FUNC_ENTRY);
-	pthread_mutex_lock(&g_things_stop_mutex);
+	pthread_mutex_lock(&g_things_stop_mutex);	
 	pthread_mutex_lock(&m_thread_oic_reset);
 
 	if (b_thread_things_reset == true) {
@@ -704,9 +678,7 @@ static void *__attribute__((optimize("O0"))) t_things_reset_loop(reset_args_s *a
 	THINGS_LOG_D(TAG, "Disable Notification Module.");
 	things_set_reset_mask(RST_NOTI_MODULE_DISABLE);
 
-	iotivity_api_lock();
 	OCClearObserverlist();		// delete All Observer. (for remote Client)
-	iotivity_api_unlock();
 
 	// 4. Cloud Manager : Terminate
 	THINGS_LOG_D(TAG, "Terminate Cloud Module.");
@@ -726,9 +698,7 @@ static void *__attribute__((optimize("O0"))) t_things_reset_loop(reset_args_s *a
 	}
 	THINGS_LOG_V(TAG, "Reset done: cloud provisioning data");
 
-	iotivity_api_lock();
 	OCClearCallBackList();		// delete All Client Call-Back List. (for SET Self-Request)
-	iotivity_api_unlock();
 
 	// 7. Security Reset.
 #ifdef __SECURED__
@@ -763,8 +733,6 @@ static void *__attribute__((optimize("O0"))) t_things_reset_loop(reset_args_s *a
 
 	THINGS_LOG_D(TAG, "Reset Success.");
 	result = 1;
-	// After completed reset of device doing wifi scan
-	things_start_scanning_ap();
 
 GOTO_OUT:
 	// 10. All Module Enable.
@@ -789,7 +757,6 @@ GOTO_OUT:
 	pthread_mutex_lock(&m_thread_oic_reset);
 	h_thread_things_reset = 0;
 	b_thread_things_reset = false;
-	b_reset_continue_flag = false;
 	pthread_mutex_unlock(&m_thread_oic_reset);
 	THINGS_LOG_D(TAG, "Exit.");
 	return NULL;

@@ -142,7 +142,7 @@
 int nanosleep(FAR const struct timespec *rqtp, FAR struct timespec *rmtp)
 {
 	irqstate_t flags;
-	clock_t starttick;
+	systime_t starttick;
 	sigset_t set;
 	struct siginfo value;
 	int errval;
@@ -202,8 +202,8 @@ int nanosleep(FAR const struct timespec *rqtp, FAR struct timespec *rmtp)
 	 */
 
 	if (rmtp) {
-		clock_t elapsed;
-		clock_t remaining;
+		systime_t elapsed;
+		systime_t remaining;
 		int ticks;
 
 		/* First get the number of clock ticks that we were requested to

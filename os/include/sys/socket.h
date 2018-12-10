@@ -69,7 +69,6 @@
 
 #include <tinyara/config.h>
 #include <sys/types.h>
-#include <sys/uio.h>
 
 #ifdef CONFIG_NET_LWIP
 #include <net/lwip/sockets.h>
@@ -78,6 +77,10 @@
 #include <sys/sock_internal.h>
 #endif /* CONFIG_NET_LWIP */
 
+/****************************************************************************
+ * Public Function Prototypes
+ ****************************************************************************/
+
 #undef EXTERN
 #if defined(__cplusplus)
 #define EXTERN extern "C"
@@ -85,24 +88,6 @@ extern "C" {
 #else
 #define EXTERN extern
 #endif
-
-/****************************************************************************
- * Public Structure
- ****************************************************************************/
-
-struct msghdr {
-	void *msg_name;                /* optional address */
-	socklen_t msg_namelen;         /* size of address */
-	struct iovec *msg_iov;         /* scatter/gather array */
-	int msg_iovlen;                /* # elements in msg_iov */
-	void *msg_control;             /* ancillary data, see below */
-	socklen_t msg_controllen;      /* ancillary data buffer len */
-	int msg_flags;                 /* flags on received message */
-};
-
-/****************************************************************************
- * Public Function Prototypes
- ****************************************************************************/
 
 /**
 * @brief creates an unbound socket in a communications domain.

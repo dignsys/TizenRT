@@ -55,11 +55,8 @@
  ********************************************************************************/
 
 #include <tinyara/config.h>
-
-#include <sys/types.h>
 #include <stdio.h>
 #include <stdbool.h>
-
 #include "kernel_sample.h"
 
 #if CONFIG_RR_INTERVAL > 0

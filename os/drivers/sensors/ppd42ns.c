@@ -24,8 +24,6 @@
 #include <errno.h>
 #include <debug.h>
 #include <math.h>
-#include <string.h>
-#include <sys/time.h>
 
 #include <tinyara/sensors/ppd42ns.h>
 

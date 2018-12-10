@@ -63,7 +63,7 @@ THREADEXEC = TASH_EXECMD_ASYNC
 # C++ Test Example
 ASRCS		=
 CSRCS		=
-CXXSRCS		= BufferInputDataSource.cpp
+CXXSRCS		= 
 MAINSRC		= $(FUNCNAME)$(CXXEXT)
 
 AOBJS		= $(ASRCS:.S=$(OBJEXT))

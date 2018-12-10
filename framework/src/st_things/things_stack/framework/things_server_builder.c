@@ -18,7 +18,6 @@
 
 #define _POSIX_C_SOURCE 200809L
 #define _BSD_SOURCE
-#include <sys/types.h>
 #include <string.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,7 +33,8 @@
 #include "ocpayload.h"
 #include "things_resource.h"
 #include "things_server_builder.h"
-#include "things_iotivity_lock.h"
+
+
 #include "easy-setup/resource_handler.h"
 #ifdef __ST_THINGS_RTOS__
 #include "utils/things_rtos_util.h"
@@ -47,8 +47,12 @@
 #define KEY_ATTR_PLATFORM_VENDERID          "vid"
 
 static pthread_t g_thread_id_server;
+static pthread_t g_thread_id_presence;
 
 static int g_quit_flag = 0;
+static uint g_presence_flag = 0;
+static int g_presence_duration = 20;
+static volatile bool is_presence = false;
 
 things_server_builder_s *g_builder = NULL;
 
@@ -57,12 +61,10 @@ void *server_execute_loop(void *param)
 	THINGS_LOG_D(TAG, THINGS_FUNC_ENTRY);
 
 	while (!g_quit_flag) {
-		iotivity_api_lock();
 		if (OCProcess() != OC_STACK_OK) {
 			THINGS_LOG_E(TAG, "OCProcess Error");
 			//   need to insert error handling logic from here
 		}
-		iotivity_api_unlock();
 		//   The proper time period for looping need to be decided..
 		usleep(10 * 1000);
 	}
@@ -107,7 +109,6 @@ struct things_resource_s *create_resource(struct things_server_builder_s *builde
 #endif
 	}
 
-	iotivity_api_lock();
 	OCStackResult ret = OCCreateResource(&hd,
 										 type,
 										 interface,
@@ -115,7 +116,7 @@ struct things_resource_s *create_resource(struct things_server_builder_s *builde
 										 builder->handler,
 										 NULL,
 										 rsc_properties);
-	iotivity_api_unlock();
+
 	if (ret != OC_STACK_OK) {
 		THINGS_LOG_V(TAG, "Resource Creation Failed - ret = %d, %s", ret, uri);
 		return NULL;
@@ -155,7 +156,7 @@ struct things_resource_s *create_collection_resource(struct things_server_builde
 	rsc_properties |= OC_SECURE;
 
 #endif							//#ifdef __SECURED__
-	iotivity_api_lock();
+
 	OCStackResult ret = OCCreateResource(&hd,
 										 type,
 										 OIC_INTERFACE_LINKEDLIST,
@@ -163,15 +164,14 @@ struct things_resource_s *create_collection_resource(struct things_server_builde
 										 builder->handler,
 										 NULL,
 										 rsc_properties);
+
 	if (ret != OC_STACK_OK) {
 		THINGS_LOG_V(TAG, "Resource Creation Failed - ret = %d, %s", ret, uri);
-		iotivity_api_unlock();
 		return NULL;
 	}
-
+	
 	OCBindResourceTypeToResource(hd, OIC_RTYPE_COLLECTION_WK);
 	OCBindResourceInterfaceToResource(hd, OIC_INTERFACE_BATCH);
-	iotivity_api_unlock();
 
 	res = things_create_resource_inst(NULL, hd, NULL, NULL);
 
@@ -192,24 +192,19 @@ struct things_resource_s *create_collection_resource(struct things_server_builde
 
 void delete_resource(struct things_server_builder_s *builder)
 {
-	iotivity_api_lock();
 	for (size_t iter = 0; iter < builder->res_num; iter++) {
 		OCStackResult ret = OCDeleteResource((OCResourceHandle)(builder->gres_arr[iter]->resource_handle));
 		if (ret != OC_STACK_OK) {
 			THINGS_LOG_E(TAG, "Failed to delete the resource");
 		}
 	}
-	iotivity_api_unlock();
 }
 
 int add_interface_type(things_resource_s *resource, char *interface)
 {
 	if (NULL != resource && NULL != interface) {
 		if (NULL != resource->resource_handle) {
-			iotivity_api_lock();
-			OCStackResult res = OCBindResourceInterfaceToResource(resource->resource_handle, interface);
-			iotivity_api_unlock();
-			if (OC_STACK_OK == res) {
+			if (OC_STACK_OK == OCBindResourceInterfaceToResource(resource->resource_handle, interface)) {
 				return OC_STACK_OK;
 			}
 		}
@@ -222,10 +217,7 @@ int add_resource_type(things_resource_s *resource, char *type)
 {
 	if (NULL != resource && NULL != type) {
 		if (NULL != resource->resource_handle) {
-			iotivity_api_lock();
-			OCStackResult res = OCBindResourceTypeToResource(resource->resource_handle, type);
-			iotivity_api_unlock();
-			if (OC_STACK_OK == res) {
+			if (OC_STACK_OK == OCBindResourceTypeToResource(resource->resource_handle, type)) {
 				return OC_STACK_OK;
 			}
 		}
@@ -246,10 +238,8 @@ void things_bind(struct things_resource_s *res, struct things_resource_s *bind)
 		return;
 	}
 
-	iotivity_api_lock();
 	OCStackResult ret = OCBindResource((OCResourceHandle)(res->resource_handle),
 									   (OCResourceHandle)(bind->resource_handle));
-	iotivity_api_unlock();
 	if (ret != OC_STACK_OK) {
 		THINGS_LOG_V(TAG, "bind Failed ");
 	}
@@ -269,9 +259,8 @@ struct things_resource_s *get_resource(things_server_builder_s *builder, const c
 {
 	things_resource_s *ret = NULL;
 	for (size_t iter = 0; iter < builder->res_num; iter++) {
-		iotivity_api_lock();
 		const char *rURI = OCGetResourceUri((OCResourceHandle)(builder->gres_arr[iter]->resource_handle));
-		iotivity_api_unlock();
+
 		if (things_string_compare(rURI, uri) == 0) {
 			THINGS_LOG_D(TAG, "URI Compare : %s , %s", uri, rURI);
 			ret = builder->gres_arr[iter];
@@ -307,6 +296,11 @@ void deinit_builder(things_server_builder_s *builder)
 		pthread_detach(g_thread_id_server);
 		g_thread_id_server = NULL;
 
+		pthread_cancel(g_thread_id_presence);
+		pthread_join(g_thread_id_presence, NULL);
+		pthread_detach(g_thread_id_presence);
+		g_thread_id_presence = NULL;
+
 		// 1.    Need to unregister those registered resource in the Stack
 		// 2.    Free the payload of each resources
 		for (size_t iter = 0; iter < builder->res_num; iter++) {
@@ -339,12 +333,7 @@ void set_device_info(things_server_builder_s *builder, char *device_name, char *
 	device_info.dataModelVersions = OCCreateOCStringLL(DEFAULT_DATA_MODEL_VERSIONS);
 	device_info.types = OCCreateOCStringLL(device_type);
 	OCResourcePayloadAddStringLL(&device_info.types, OC_RSRVD_RESOURCE_TYPE_DEVICE);
-
-	iotivity_api_lock();
-
 	OCSetDeviceInfo(device_info);
-
-	iotivity_api_unlock();
 
 	// OCSetPropertyValue(PAYLOAD_TYPE_DEVICE, KEY_ATTR_DEVICE_NAME, device_name);
 
@@ -388,12 +377,9 @@ void set_platform_info(things_server_builder_s *builder, char *model_num, char *
 	platform_info.supportUrl = NULL;
 	platform_info.systemTime = NULL;
 
-	iotivity_api_lock();
-
 	OCSetPropertyValue(PAYLOAD_TYPE_PLATFORM, KEY_ATTR_PLATFORM_VENDERID, venderid);
-	OCSetPlatformInfo(platform_info);
 
-	iotivity_api_unlock();
+	OCSetPlatformInfo(platform_info);
 
 	THINGS_LOG_D(TAG, THINGS_FUNC_EXIT);
 }
@@ -418,8 +404,11 @@ things_server_builder_s *get_builder_instance()
 			g_builder->add_resource_type = &add_resource_type;
 			g_builder->bind = &things_bind;
 			g_builder->bind_all = &bind_all;
+			g_builder->broadcast_presence = NULL; //&BroadcastPresence;
 			g_builder->res_num = 0;
 			g_builder->handler = NULL;
+
+			is_presence = false;
 
 			return g_builder;
 		} else {
@@ -452,5 +441,6 @@ void release_builder_instance(things_server_builder_s *builder)
 
 		things_free(builder);
 		g_builder = NULL;
+		is_presence = false;
 	}
 }

@@ -56,8 +56,8 @@
 ASRCS		=
 CSRCS		=
 
-CSRCS += $(notdir $(wildcard ./mp3dec/*.c))
-CSRCS += $(notdir $(wildcard ./aacdec/*.c))
+CSRCS += $(wildcard ./mp3dec/*.c)
+CSRCS += $(wildcard ./aacdec/*.c)
 
 CFLAGS += -D__TINYARA__
 CFLAGS += -std=c99
@@ -78,11 +78,11 @@ else
 endif
 endif
 
-DEPPATH	= --dep-path . --dep-path mp3dec --dep-path aacdec
+DEPPATH	= --dep-path .
 
 # Common build
 
-VPATH	= :mp3dec :aacdec
+VPATH		=
 
 all: .built
 .PHONY: depend clean distclean

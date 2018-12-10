@@ -27,14 +27,14 @@
 #include <semaphore.h>
 #include "tc_common.h"
 
-#if defined(CONFIG_TASH) && !defined(CONFIG_BUILTIN_APPS)
+#ifdef CONFIG_TASH
 #include <apps/shell/tash.h>
 #else
 #if defined(CONFIG_EXAMPLES_TESTCASE_ARASTORAGE_UTC) || defined(CONFIG_EXAMPLES_TESTCASE_ARASTORAGE_ITC)
 #define TC_ARASTORAGE_STACK       4096
 #endif
 #if defined(CONFIG_EXAMPLES_TESTCASE_AUDIO_UTC) || defined(CONFIG_EXAMPLES_TESTCASE_AUDIO_ITC)
-#define TC_AUDIO_STACK  4096
+#define TC_AUDIO_STACK  2048
 #endif
 #if defined(CONFIG_EXAMPLES_TESTCASE_DM_UTC) || defined(CONFIG_EXAMPLES_TESTCASE_DM_ITC)
 #define TC_DM_STACK  2048
@@ -66,7 +66,7 @@
 #if defined(CONFIG_EXAMPLES_TESTCASE_SYSTEMIO_UTC) || defined(CONFIG_EXAMPLES_TESTCASE_SYSTEMIO_ITC)
 #define TC_SYSTEMIO_STACK 2048
 #endif
-#if defined(CONFIG_EXAMPLES_TESTCASE_TASK_MANAGER_UTC) || defined(CONFIG_EXAMPLES_TESTCASE_TASK_MANAGER_ITC)
+#if defined(CONFIG_EXAMPLES_TESTCASE_TASK_MANAGER_UTC)
 #define TC_TASK_MANAGER_STACK  2048
 #endif
 #ifdef CONFIG_EXAMPLES_TESTCASE_TTRACE
@@ -106,10 +106,9 @@ extern int utc_mqtt_main(int argc, char *argv[]);
 extern int itc_mqtt_main(int argc, char *argv[]);
 extern int utc_sysio_main(int argc, char *argv[]);
 extern int itc_sysio_main(int argc, char *argv[]);
-extern int utc_taskmanager_main(int argc, char *argv[]);
-extern int itc_taskmanager_main(int argc, char *argv[]);
-extern int utc_wifimanager_main(int argc, char *argv[]);
-extern int itc_wifimanager_main(int argc, char *argv[]);
+extern int utc_task_manager_main(int argc, char *argv[]);
+extern int utc_wifi_manager_main(int argc, char *argv[]);
+extern int itc_wifi_manager_main(int argc, char *argv[]);
 
 /* Not yet */
 extern int tc_mpu_main(int argc, char *argv[]);
@@ -119,7 +118,7 @@ extern int tc_mpu_main(int argc, char *argv[]);
 extern int utc_libcxx_main(int argc, char *argv[]);
 #endif
 
-#if defined(CONFIG_TASH) && !defined(CONFIG_BUILTIN_APPS)
+#ifdef CONFIG_TASH
 static const tash_cmdlist_t tc_cmds[] = {
 #ifdef CONFIG_EXAMPLES_TESTCASE_ARASTORAGE_UTC
 	{"arastorage_utc", utc_arastorage_main, TASH_EXECMD_ASYNC},
@@ -176,19 +175,16 @@ static const tash_cmdlist_t tc_cmds[] = {
 	{"sysio_itc", itc_sysio_main, TASH_EXECMD_ASYNC},
 #endif
 #ifdef CONFIG_EXAMPLES_TESTCASE_TASK_MANAGER_UTC
-	{"taskmgr_utc", utc_taskmanager_main, TASH_EXECMD_ASYNC},
-#endif
-#ifdef CONFIG_EXAMPLES_TESTCASE_TASK_MANAGER_ITC
-	{"taskmgr_itc", itc_taskmanager_main, TASH_EXECMD_ASYNC},
+	{"taskmgr_utc", utc_task_manager_main, TASH_EXECMD_ASYNC},
 #endif
 #ifdef CONFIG_EXAMPLES_TESTCASE_TTRACE
 	{"ttrace_tc", tc_ttrace_main, TASH_EXECMD_ASYNC},
 #endif
 #ifdef CONFIG_EXAMPLES_TESTCASE_WIFI_MANAGER_UTC
-	{"wifimgr_utc", utc_wifimanager_main, TASH_EXECMD_ASYNC},
+	{"wifi_manager_utc", utc_wifi_manager_main, TASH_EXECMD_ASYNC},
 #endif
 #ifdef CONFIG_EXAMPLES_TESTCASE_WIFI_MANAGER_ITC
-	{"wifimgr_itc", itc_wifimanager_main, TASH_EXECMD_ASYNC},
+	{"wifi_manager_itc", itc_wifi_manager_main, TASH_EXECMD_ASYNC},
 #endif
 #ifdef CONFIG_EXAMPLES_TESTCASE_TCP_TLS_STRESS
 	{"tcp_tls_stress", tc_tcp_tls_main, TASH_EXECMD_ASYNC},
@@ -246,12 +242,10 @@ int main(int argc, FAR char *argv[])
 int tc_main(int argc, char *argv[])
 #endif
 {
-#if defined(CONFIG_TASH)
-#if !defined(CONFIG_BUILTIN_APPS)
+#ifdef CONFIG_TASH
 	tash_cmdlist_install(tc_cmds);
-#endif
 	printf("\nTestcase registers TASH commands named \"<MODULE_NAME>_tc\".\nPlease find them using \"help\" and execute them in TASH\n");
-#else // !CONFIG_TASH
+#else
 	int pid;
 
 #ifdef CONFIG_EXAMPLES_TESTCASE_ARASTORAGE_UTC
@@ -363,7 +357,7 @@ int tc_main(int argc, char *argv[])
 	}
 #endif
 #ifdef CONFIG_EXAMPLES_TESTCASE_TASK_MANAGER_UTC
-	pid = task_create("taskmgrutc", SCHED_PRIORITY_DEFAULT, TC_TASK_MANAGER_STACK, utc_taskmanager_main, argv);
+	pid = task_create("taskmgrutc", SCHED_PRIORITY_DEFAULT, TC_TASK_MANAGER_STACK, utc_task_manager_main, argv);
 	if (pid < 0) {
 		printf("Task Manager utc is not started, err = %d\n", pid);
 	}
@@ -375,13 +369,13 @@ int tc_main(int argc, char *argv[])
 	}
 #endif
 #ifdef CONFIG_EXAMPLES_TESTCASE_WIFI_MANAGER_UTC
-	pid = task_create("wifimgrutc", SCHED_PRIORITY_DEFAULT, TC_WIFI_MANAGER_STACK, utc_wifimanager_main, argv);
+	pid = task_create("wifimgrutc", SCHED_PRIORITY_DEFAULT, TC_WIFI_MANAGER_STACK, utc_wifi_manager_main, argv);
 	if (pid < 0) {
 		printf("Wi-Fi Manager utc is not started, err = %d\n", pid);
 	}
 #endif
 #ifdef CONFIG_EXAMPLES_TESTCASE_WIFI_MANAGER_ITC
-	pid = task_create("wifimgritc", SCHED_PRIORITY_DEFAULT, TC_WIFI_MANAGER_STACK, itc_wifimanager_main, argv);
+	pid = task_create("wifimgritc", SCHED_PRIORITY_DEFAULT, TC_WIFI_MANAGER_STACK, itc_wifi_manager_main, argv);
 	if (pid < 0) {
 		printf("Wi-Fi Manager itc is not started, err = %d\n", pid);
 	}

@@ -27,7 +27,7 @@ config ARCH_CHIP_S5J
 		Samsung IoT SoC architectures (ARM Cortex R)
 
 config ARCH_CHIP_BCM4390X
-	bool "Cypress BCM4390X"
+	bool "CY 4390X series"
 	select ARCH_CORTEXR4
 	select ARCH_HAVE_MPU
 	select ARMV7M_MPU
@@ -37,6 +37,22 @@ config ARCH_CHIP_BCM4390X
 	---help---
 		Cypress BCM4390x SoC architectures (ARM Cortex-R)
 
+config ARCH_CHIP_STM32L4
+	bool "STMicro STM32 L4"
+	select ARCH_CORTEXM4
+	select ARCH_HAVE_MPU
+	select ARCH_HAVE_CMNVECTOR
+	select ARCH_HAVE_FETCHADD
+	select ARCH_HAVE_I2CRESET
+	select ARCH_HAVE_HEAPCHECK if DEBUG
+	select ARCH_HAVE_PROGMEM
+	select ARCH_HAVE_SPI_BITORDER
+	select ARCH_HAVE_TICKLESS
+	select ARM_HAVE_MPU_UNIFIED
+	select ARMV7M_HAVE_STACKCHECK
+	---help---
+		STMicro STM32 architectures (ARM Cortex-M4).
+
 endchoice
 
 config ARCH_CHIP
@@ -44,6 +60,7 @@ config ARCH_CHIP
 	default "s5j"       if ARCH_CHIP_S5J
 	default "tiva"      if ARCH_CHIP_LM
 	default "bcm4390x"  if ARCH_CHIP_BCM4390X
+	default "stm32l4"   if ARCH_CHIP_STM32L4
 
 comment "ARM Options"
 
@@ -183,6 +200,9 @@ source arch/arm/src/s5j/Kconfig
 endif
 if ARCH_CHIP_BCM4390X
 source arch/arm/src/bcm4390x/Kconfig
+endif
+if ARCH_CHIP_STM32L4
+source arch/arm/src/stm32l4/Kconfig
 endif
 
 endif

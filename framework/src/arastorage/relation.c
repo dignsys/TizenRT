@@ -66,6 +66,7 @@
 #include "db_options.h"
 #include "db_debug.h"
 #include "list.h"
+#include "memb.h"
 #include "aql.h"
 #include "relation.h"
 
@@ -74,9 +75,9 @@
 ****************************************************************************/
 
 LIST(relations);
-// TODO: SIZE limitation not applied
-//MEMB(relations_memb, relation_t, DB_RELATION_POOL_SIZE);
-//MEMB(attributes_memb, attribute_t, DB_ATTRIBUTE_POOL_SIZE);
+MEMB(relations_memb, relation_t, DB_RELATION_POOL_SIZE);
+MEMB(attributes_memb, attribute_t, DB_ATTRIBUTE_POOL_SIZE);
+
 static relation_t *relation_find(char *);
 static attribute_t *attribute_find(relation_t *, char *);
 static int get_attribute_value_offset(relation_t *, attribute_t *);
@@ -137,7 +138,7 @@ static void attribute_free(relation_t *rel, attribute_t *attr)
 	if (attr->index != NULL) {
 		index_release(attr->index);
 	}
-	free(attr);
+	memb_free(&attributes_memb, attr);
 	rel->attribute_count--;
 }
 
@@ -169,10 +170,10 @@ static relation_t *relation_allocate(void)
 {
 	relation_t *rel;
 
-	rel = malloc(sizeof(relation_t));
+	rel = memb_alloc(&relations_memb);
 	if (rel == NULL) {
 		purge_relations();
-		rel = malloc(sizeof(relation_t));
+		rel = memb_alloc(&relations_memb);
 		if (rel == NULL) {
 			DB_LOG_E("DB: Failed to allocate a relation\n");
 			return NULL;
@@ -195,7 +196,7 @@ static void relation_free(relation_t *rel)
 	} while (attr != NULL);
 
 	list_remove(relations, rel);
-	free(rel);
+	memb_free(&relations_memb, rel);
 }
 
 db_result_t relation_init(void)
@@ -204,7 +205,8 @@ db_result_t relation_init(void)
 	if (list_head(relations) != NULL) {
 		return DB_RELATIONAL_ERROR;
 	}
-
+	memb_init(&relations_memb);
+	memb_init(&attributes_memb);
 	return DB_OK;
 }
 
@@ -219,7 +221,6 @@ db_result_t relation_deinit(void)
 		relation_free(rel);
 		rel = next;
 	}
-
 	return DB_OK;
 }
 
@@ -239,7 +240,7 @@ relation_t *relation_load(char *name)
 	}
 
 	if (DB_ERROR(storage_get_relation(rel, name))) {
-		free(rel);
+		memb_free(&relations_memb, rel);
 		return NULL;
 	}
 
@@ -278,23 +279,22 @@ db_result_t relation_release(relation_t *rel)
 
 relation_t *relation_create(char *name, db_direction_t dir)
 {
+	relation_t old_rel;
 	relation_t *rel;
-	
 	if (*name != '\0') {
+		relation_clear(&old_rel);
+
+		if (storage_get_relation(&old_rel, name) == DB_OK) {
+			/* Reject a creation request if the relation already exists. */
+			DB_LOG_E("DB: Attempted to create a relation that already exists (%s)\n", name);
+			return NULL;
+		}
+
 		rel = relation_allocate();
 		if (rel == NULL) {
 			return NULL;
 		}
-		relation_clear(rel);
 
-		if (storage_get_relation(rel, name) == DB_OK) {
-			/* Reject a creation request if the relation already exists. */
-			DB_LOG_E("DB: Attempted to create a relation that already exists (%s)\n", name);
-			relation_free(rel);
-			return NULL;
-		}
-
-		relation_clear(rel);
 		rel->cardinality = 0;
 		strncpy(rel->name, name, sizeof(rel->name) - 1);
 
@@ -306,7 +306,7 @@ relation_t *relation_create(char *name, db_direction_t dir)
 				list_add(relations, rel);
 				return rel;
 			}
-			free(rel);
+			memb_free(&relations_memb, rel);
 		} else {
 			list_add(relations, rel);
 			return rel;
@@ -342,7 +342,7 @@ attribute_t *relation_attribute_add(relation_t *rel, db_direction_t dir, char *n
 		return NULL;
 	}
 
-	attribute = malloc(sizeof(attribute_t));
+	attribute = memb_alloc(&attributes_memb);
 	if (attribute == NULL) {
 		DB_LOG_E("DB: Failed to allocate attribute \"%s\"!\n", name);
 		return NULL;
@@ -356,17 +356,18 @@ attribute_t *relation_attribute_add(relation_t *rel, db_direction_t dir, char *n
 	attribute->index = NULL;
 	attribute->flags = 0 /*ATTRIBUTE_FLAG_UNIQUE */ ;
 
+	rel->row_length += element_size;
+
+	list_add(rel->attributes, attribute);
+	rel->attribute_count++;
+
 	if (dir == DB_STORAGE) {
 		if (DB_ERROR(storage_put_attribute(rel, attribute))) {
 			DB_LOG_E("DB: Failed to store attribute %s\n", attribute->name);
-			free(attribute);
+			memb_free(&attributes_memb, attribute);
 			return NULL;
 		}
 	}
-	
-	rel->row_length += element_size;
-	list_add(rel->attributes, attribute);
-	rel->attribute_count++;
 
 	return attribute;
 }

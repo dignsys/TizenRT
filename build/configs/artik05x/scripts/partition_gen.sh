@@ -1,4 +1,5 @@
 #!/bin/bash
+
 ###########################################################################
 #
 # Copyright 2017 Samsung Electronics All Rights Reserved.
@@ -22,16 +23,13 @@
 # Created partition map cfg file can be included in the main openocd cfg script
 # for flashing.
 
-THIS_PATH=`test -d ${0%/*} && cd ${0%/*}; pwd`
-# When location of this script is changed, only OS_DIR_PATH should be changed together!!!
-OS_DIR_PATH=${THIS_PATH}/../../../../os
-
-source ${OS_DIR_PATH}/.config
+source .config
 
 # Path ENV
 BOARD_NAME=${CONFIG_ARCH_BOARD}
-PARTMAP_DIR_PATH=${THIS_PATH}
-BOARD_KCONFIG=${OS_DIR_PATH}/board/${BOARD_NAME}/Kconfig
+OS_DIR_PATH=${PWD}
+PARTMAP_DIR_PATH=${OS_DIR_PATH}/../build/configs/artik05x/scripts
+BOARD_KCONFIG=${OS_DIR_PATH}/arch/arm/src/${BOARD_NAME}/Kconfig
 
 # FLASH BASE ADDRESS (Can it be made to read dynamically from .config?)
 FLASH_BASE=0x04000000

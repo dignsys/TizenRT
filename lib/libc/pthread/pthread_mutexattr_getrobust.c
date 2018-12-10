@@ -55,8 +55,6 @@
  ****************************************************************************/
 
 #include <tinyara/config.h>
-
-#include <sys/types.h>
 #include <pthread.h>
 #include <errno.h>
 

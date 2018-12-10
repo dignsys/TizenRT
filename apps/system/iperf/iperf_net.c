@@ -52,7 +52,6 @@
 #include <assert.h>
 #include <netdb.h>
 #include <string.h>
-#include <arpa/inet.h>
 
 #ifdef HAVE_SENDFILE
 #ifdef linux

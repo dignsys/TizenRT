@@ -62,6 +62,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "memb.h"
 #include "db_debug.h"
 #include "result.h"
 #include "aql.h"

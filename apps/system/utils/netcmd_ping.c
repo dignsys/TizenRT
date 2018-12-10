@@ -304,6 +304,7 @@ static void ping_recv(int family, int s, struct timespec *ping_time)
 			if ((iecho->id == PING_ID) && (iecho->seqno == htons(g_ping_seq_num))) {
 				/* do some ping result processing */
 				PING_RESULT((ICMPH_TYPE(iecho) == ICMP_ER));
+				free(from);
 				return;
 			} else {
 				printf("drop\n");
@@ -464,7 +465,7 @@ int ping_process(int count, const char *taddr, int size)
 	while (1) {
 		if (ping_send(s, to, size) == ERR_OK) {
 			// printf("ping : send %d\n", ping_send_counter);
-      clock_gettime(CLOCK_REALTIME, &ping_time);
+		        clock_gettime(CLOCK_REALTIME, &ping_time);
 			ping_recv((int)to->sa_family, s, &ping_time);
 		} else {
 			printf("ping_process: sendto error(%d)\n", errno);

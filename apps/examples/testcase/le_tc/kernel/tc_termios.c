@@ -24,7 +24,6 @@
  * Included Files
  ****************************************************************************/
 #include <tinyara/config.h>
-#include <unistd.h>
 #include <termios.h>
 #include <errno.h>
 #include <stdio.h>

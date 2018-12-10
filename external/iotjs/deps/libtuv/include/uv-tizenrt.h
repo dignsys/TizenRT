@@ -44,7 +44,7 @@
 
 #include <netdb.h>
 
-#include <sys/uio.h>
+#include <uio.h>
 
 #ifndef TUV_POLL_EVENTS_SIZE
 #define TUV_POLL_EVENTS_SIZE  32
@@ -81,6 +81,12 @@
 //-----------------------------------------------------------------------------
 // thread and mutex
 #define UV_PLATFORM_RWLOCK_T pthread_mutex_t
+
+//-----------------------------------------------------------------------------
+// uio
+ssize_t readv(int __fd, const struct iovec* __iovec, int __count);
+ssize_t writev(int __fd, const struct iovec* __iovec, int __count);
+
 
 //-----------------------------------------------------------------------------
 // etc

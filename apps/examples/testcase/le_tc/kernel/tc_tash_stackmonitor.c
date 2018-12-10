@@ -24,15 +24,10 @@
  * Included Files
  ****************************************************************************/
 #include <tinyara/config.h>
-
-#include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sched.h>
-#include <pthread.h>
-
 #include <apps/shell/tash.h>
-
 #include "tc_internal.h"
 
 #define DEFAULT_STKSIZE 1024

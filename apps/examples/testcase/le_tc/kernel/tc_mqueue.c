@@ -62,9 +62,6 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <ctype.h>
-#ifndef CONFIG_DISABLE_SIGNALS
-#include <signal.h>
-#endif
 #include <fcntl.h>
 #include "tc_internal.h"
 

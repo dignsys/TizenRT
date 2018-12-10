@@ -21,7 +21,7 @@
 #include "ares.h"
 // TODO(TizenRT)
 #if defined(__TINYARA__)
-#include <sys/uio.h>
+#include <uio.h>
 #endif
 
 #ifndef HAVE_WRITEV

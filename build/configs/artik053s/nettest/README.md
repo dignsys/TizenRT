@@ -2,7 +2,7 @@
  This can be used to test network functionality.
 
 ## Enabled Feature
-### File System
+### File system
   MTD, ProcFS, SmartFS
 
 ### Kernel

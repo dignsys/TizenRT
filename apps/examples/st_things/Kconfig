@@ -35,6 +35,21 @@ config EXAMPLES_ST_THINGS_MSG_HANDLING
 	---help---
 		This is a Message handling Sample.
 
+config EXAMPLES_ST_THINGS_LED
+	bool "LED"
+	---help---
+		This is a LED Sample.
+
+config EXAMPLES_ST_THINGS_CO2
+	bool "CO2"
+	---help---
+		This is a CO2 Sample.
+
+config EXAMPLES_ST_THINGS_SMARTPLUG
+	bool "SMARTPLUG"
+	---help---
+		This is a SMARTPLUG Sample.
+
 endchoice
 
 config RESET_BUTTON
@@ -72,6 +87,12 @@ config EXAMPLES_ST_THINGS_RED_LED_GPIO_NUM
 	depends on EXAMPLES_ST_THINGS_BLINK
 	---help---
 		This is a red led gpio num.
+
+config EXAMPLES_ST_THINGS_SMARTPLUG_SUPPORT_OTA
+	default n
+	depends on EXAMPLES_ST_THINGS_SMARTPLUG
+	---help---
+		OTA support for SmartPlug
 
 endif
 

@@ -234,10 +234,6 @@ double lib_expi(size_t n);
 float lib_sqrtapprox(float x);
 #endif
 
-/* Defined in __randname.c */
-
-char *__randname(char *template, uint8_t len);
-
 #undef EXTERN
 #if defined(__cplusplus)
 }

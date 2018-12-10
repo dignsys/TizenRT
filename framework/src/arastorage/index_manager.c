@@ -55,7 +55,6 @@
 /****************************************************************************
  * Included Files
  ****************************************************************************/
-#include <sys/types.h>
 #include <string.h>
 #include <stdbool.h>
 #include <pthread.h>
@@ -64,6 +63,7 @@
 #include "db_options.h"
 #include "db_debug.h"
 #include "storage.h"
+#include "memb.h"
 #include "list.h"
 #include "index.h"
 #include "result.h"
@@ -83,6 +83,7 @@ pthread_attr_t g_attr;
 static index_api_t *find_index_api(index_type_t index_type);
 db_result_t db_indexing(relation_t*);
 LIST(indices);
+MEMB(index_memb, index_t, DB_INDEX_POOL_SIZE);
 
 /****************************************************************************
 * Public Functions
@@ -95,33 +96,29 @@ db_result_t index_init(void)
 	if (list_head(indices) != NULL) {
 		return DB_INDEX_ERROR;
 	}
-
+	memb_init(&index_memb);
 	status = pthread_attr_init(&g_attr);
 
 	if (status != 0) {
 		DB_LOG_E("indexing_test: pthread_attr_init failed, status=%d\n", status);
 	}
-
 	return DB_OK;
+
 }
 
 db_result_t index_deinit(void)
 {
-	index_t *tmp = NULL;
 	index_t *index = list_head(indices);
 	while (index != NULL) {
 		DB_LOG_D("Releasing index on rel: %s, attr :%s\n", index->rel->name, index->attr->name);
 		if (DB_ERROR(index->api->release(index))) {
 			return DB_INDEX_ERROR;
 		}
-		tmp = index;
 		index = index->next;
-		free(tmp);
 	}
 	if (DB_ERROR(index_init())) {
 		return DB_INDEX_ERROR;
 	}
-
 	return DB_OK;
 }
 
@@ -153,7 +150,7 @@ db_result_t index_create(index_type_t index_type, relation_t *rel, attribute_t *
 		return DB_INDEX_ERROR;
 	}
 
-	index = malloc(sizeof(index_t));
+	index = memb_alloc(&index_memb);
 	if (index == NULL) {
 		DB_LOG_E("DB: Failed to allocate an index\n");
 		return DB_ALLOCATION_ERROR;
@@ -166,10 +163,9 @@ db_result_t index_create(index_type_t index_type, relation_t *rel, attribute_t *
 	index->opaque_data = NULL;
 	index->descriptor_file[0] = '\0';
 	index->type = index_type;
-	index->ref_cnt = 1;
-	
+
 	if (DB_ERROR(api->create(index))) {
-		free(index);
+		index_release(index);
 		DB_LOG_E("DB: Index-specific creation failed for attribute %s\n", attr->name);
 		return DB_INDEX_ERROR;
 	}
@@ -203,11 +199,20 @@ db_result_t index_create(index_type_t index_type, relation_t *rel, attribute_t *
 db_result_t index_destroy(index_t *index)
 {
 	db_result_t res;
-
-	if (DB_ERROR(index->api->destroy(index))) {
+	int i;
+	index_t *index_iter;
+	if (DB_ERROR(index_release(index)) || DB_ERROR(index->api->destroy(index))) {
 		return DB_INDEX_ERROR;
 	}
-
+	for (i = 0; i < index_memb.num; ++i) {
+		if (index_memb.count[i] > 0) {
+			index_iter = (index_t *)((char *)index_memb.mem + (i * index_memb.size));
+			if ((strcmp(index->rel->name, index_iter->rel->name) == 0) && strcmp(index->attr->name, index_iter->attr->name) == 0) {
+				index_memb.count[i] = 0;
+				break;
+			}
+		}
+	}
 	list_remove(indices, index);
 	if (index->descriptor_file[0] != '\0') {
 		res = storage_remove(index->descriptor_file);
@@ -219,8 +224,6 @@ db_result_t index_destroy(index_t *index)
 		return DB_STORAGE_ERROR;
 	}
 	index->attr->index = NULL;
-
-	free(index);
 	return DB_OK;
 }
 
@@ -231,25 +234,29 @@ db_result_t index_load(relation_t *rel, attribute_t *attr)
 
 	DB_LOG_D("DB: Attempting to load an index over %s.%s\n", rel->name, attr->name);
 
+	int i;
 	bool found = false;
-	for (index = list_head(indices); index != NULL; index = index->next) {
-		/* If this block was unused, we increase the reference count to
-		   indicate that it now is used and return a pointer to the
-		   memory block. */
-		if ((strcmp(index->rel->name, rel->name) == 0) && strcmp(index->attr->name, attr->name) == 0) {
-			found = true;
-			index->ref_cnt++;
-			attr->index = index;
-			index->rel = rel;
-			index->attr = attr;
-			index->state = INDEX_READY;
-			break;
+	for (i = 0; i < index_memb.num; ++i) {
+		if (index_memb.count[i] > 0) {
+			/* If this block was unused, we increase the reference count to
+			   indicate that it now is used and return a pointer to the
+			   memory block. */
+			index = (index_t *)((char *)index_memb.mem + (i * index_memb.size));
+			if ((strcmp(index->rel->name, rel->name) == 0) && strcmp(index->attr->name, attr->name) == 0) {
+				found = true;
+				index_memb.count[i]++;
+				attr->index = index;
+				index->rel = rel;
+				index->attr = attr;
+				index->state = INDEX_READY;
+				break;
+			}
 		}
 	}
 
 	if (!found) {
 
-		index = malloc(sizeof(index_t));
+		index = memb_alloc(&index_memb);
 		if (index == NULL) {
 			DB_LOG_E("DB: No more index objects available\n");
 			return DB_ALLOCATION_ERROR;
@@ -257,19 +264,17 @@ db_result_t index_load(relation_t *rel, attribute_t *attr)
 
 		if (DB_ERROR(storage_get_index(index, rel, attr))) {
 			DB_LOG_E("DB: Failed load an index descriptor from storage\n");
-			free(index);
+			memb_free(&index_memb, index);
 			return DB_INDEX_ERROR;
 		}
 
 		index->rel = rel;
 		index->attr = attr;
 		index->opaque_data = NULL;
-		index->ref_cnt = 1;
-		
+
 		api = find_index_api(index->type);
 		if (api == NULL) {
 			DB_LOG_E("DB: No API for index type %d\n", index->type);
-			free(index); 
 			return DB_INDEX_ERROR;
 		}
 
@@ -279,7 +284,7 @@ db_result_t index_load(relation_t *rel, attribute_t *attr)
 			DB_LOG_E("DB: Index-specific load failed\n");
 			index->rel = NULL;
 			index->attr = NULL;
-			free(index);
+			memb_free(&index_memb, index);
 			return DB_INDEX_ERROR;
 		}
 		list_add(indices, index);
@@ -291,11 +296,7 @@ db_result_t index_load(relation_t *rel, attribute_t *attr)
 
 db_result_t index_release(index_t *index)
 {
-	index->ref_cnt--;
-	if (index->ref_cnt <= 0) {
-		list_remove(indices, index);
-		free(index);
-	}
+	memb_free(&index_memb, index);
 
 	return DB_OK;
 }

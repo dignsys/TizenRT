@@ -43,7 +43,7 @@ SECTIONS
     .ram_text : {
          . = ALIGN(32);
 
-         KEEP(*(.text.sram*))
+         *(.text.sram*)
     } > SRAM
 
 	.text : {
@@ -64,12 +64,12 @@ SECTIONS
 
 	.vectors : {
 		vectors_copyfrom = LOADADDR(.vectors);
-		KEEP(*(.vectors))
+		*(.vectors)
 	} > FLOPS AT > SRAM
 
 	.init_section : {
 		_sinit = ABSOLUTE(.);
-		KEEP(*(.init_array .init_array.*))
+		*(.init_array .init_array.*)
 		_einit = ABSOLUTE(.);
 	} > SRAM
 

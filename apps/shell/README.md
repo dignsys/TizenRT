@@ -4,7 +4,7 @@ lightweight shell
 
 ## How to enable
 
-Enable configuration of TASH with menuconfig
+Enable configuration of TASH through menuconfig
 ```bash
 cd $TIZENRT_BASEDIR
 cd os
@@ -12,7 +12,7 @@ make menuconfig
 ```
 Select menu
 ```bash
-Application Configuration -> Shell -> [*] Enable shell
+Application Configuration -> Shell -> Enable shell to y
 ```
 ## How to register a command on TASH
 

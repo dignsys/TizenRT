@@ -68,8 +68,6 @@
 #include <tinyara/net/dns.h>
 #include <netdb.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
 #ifdef CONFIG_NET_LWIP
 #include <net/lwip/inet.h>

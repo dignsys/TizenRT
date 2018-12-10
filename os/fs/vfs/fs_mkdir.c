@@ -113,7 +113,7 @@ int mkdir(const char *pathname, mode_t mode)
 {
 	FAR struct inode *inode;
 	const char *relpath = NULL;
-	int errcode = 0;
+	int errcode;
 	int ret;
 #ifndef CONFIG_DISABLE_MOUNTPOINT
 	FAR char *parent;

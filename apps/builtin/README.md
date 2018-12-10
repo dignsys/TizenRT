@@ -8,7 +8,7 @@ It is needed only when TASH is enabled.
 
 ### Configuration
 
-Enable configuration of builtin with menuconfig
+Enable configuration of builtin through menuconfig
 ```bash
 cd $TIZENRT_BASEDIR
 cd os
@@ -16,7 +16,7 @@ make menuconfig
 ```
 Select menu
 ```bash
-Application Configuration -> [*] Support builtin applications
+Application Configuration -> Support builtin applications to y
 ```
 
 ### Makefile

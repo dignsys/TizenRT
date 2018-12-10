@@ -20,12 +20,10 @@
  * Included Files
  ****************************************************************************/
 #include <tinyara/config.h>
-
-#include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
-
 #include <curl/curl.h>
+
 
 #define CURL_TASH_PRI      100
 #define CURL_TASH_STAKSIZE 10240

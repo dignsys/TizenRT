@@ -582,6 +582,24 @@ Once LOGM is approved, each module should have its own index
 #define glldbg(...)
 #endif
 
+#ifdef CONFIG_DEBUG_SPI_ERROR
+#  define spierr(format, ...)     _err(format, ##__VA_ARGS__)
+#else
+#  define spierr(x...)
+#endif
+
+#ifdef CONFIG_DEBUG_SPI_WARN
+#  define spiwarn(format, ...)   _warn(format, ##__VA_ARGS__)
+#else
+#  define spiwarn(x...)
+#endif
+
+#ifdef CONFIG_DEBUG_SPI_INFO
+#  define spiinfo(format, ...)   _info(format, ##__VA_ARGS__)
+#else
+#  define spiinfo(x...)
+#endif
+
 #ifdef CONFIG_DEBUG_GRAPHICS_WARN
 #define gwdbg(format, ...)    wdbg(format, ##__VA_ARGS__)
 #define gllwdbg(format, ...)  llwdbg(format, ##__VA_ARGS__)
@@ -733,35 +751,20 @@ Once LOGM is approved, each module should have its own index
 #define medllvdbg(...)
 #endif
 
+#ifdef CONFIG_DEBUG_TASK_MANAGER
 #ifdef CONFIG_DEBUG_TASK_MANAGER_ERROR
 #define tmdbg(format, ...)      dbg(format, ##__VA_ARGS__)
-#define tmlldbg(format, ...)    lldbg(format, ##__VA_ARGS__)
 #else
 #define tmdbg(...)
-#define tmlldbg(...)
 #endif
 #ifdef CONFIG_DEBUG_TASK_MANAGER_INFO
 #define tmvdbg(format, ...)     vdbg(format, ##__VA_ARGS__)
-#define tmllvdbg(format, ...)   llvdbg(format, ##__VA_ARGS__)
 #else
 #define tmvdbg(...)
-#define tmllvdbg(...)
 #endif
-
-#ifdef CONFIG_DEBUG_EVENTLOOP_ERROR
-#define eldbg(format, ...)      dbg(format, ##__VA_ARGS__)
-#define ellldbg(format, ...)    lldbg(format, ##__VA_ARGS__)
 #else
-#define eldbg(...)
-#define ellldbg(...)
-#endif
-
-#ifdef CONFIG_DEBUG_EVENTLOOP_INFO
-#define elvdbg(format, ...)     vdbg(format, ##__VA_ARGS__)
-#define elllvdbg(format, ...)   llvdbg(format, ##__VA_ARGS__)
-#else
-#define elvdbg(...)
-#define elllvdbg(...)
+#define tmdbg(...)
+#define tmvdbg(...)
 #endif
 
 #else							/* CONFIG_CPP_HAVE_VARARGS */
@@ -1163,38 +1166,6 @@ Once LOGM is approved, each module should have its own index
 #else
 #define medllvdbg   (void)
 #define medllvdbg   (...)
-#endif
-
-#ifdef CONFIG_DEBUG_TASK_MANAGER_ERROR
-#define tmdbg       dbg
-#define tmlldbg     lldbg
-#else
-#define tmdbg       (void)
-#define tmlldbg     (void)
-#endif
-
-#ifdef CONFIG_DEBUG_TASK_MANAGER_INFO
-#define tmvdbg      vdbg
-#define tmllvdbg    llvdbg
-#else
-#define tmvdbg      (void)
-#define tmllvdbg    (void)
-#endif
-
-#ifdef CONFIG_DEBUG_EVENTLOOP_ERROR
-#define eldbg      dbg
-#define ellldbg    lldbg
-#else
-#define eldbg      (void)
-#define ellldbg    (void)
-#endif
-
-#ifdef CONFIG_DEBUG_EVENTLOOP_INFO
-#define elvdbg     vdbg
-#define elllvdbg   llvdbg
-#else
-#define elvdbg     (void)
-#define elllvdbg   (void)
 #endif
 
 #endif							/* CONFIG_CPP_HAVE_VARARGS */

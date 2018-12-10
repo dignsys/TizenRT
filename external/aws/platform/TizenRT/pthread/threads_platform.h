@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-#include <sys/types.h>
+#include <pthread.h>
 
 /**
  * @brief Mutex Type

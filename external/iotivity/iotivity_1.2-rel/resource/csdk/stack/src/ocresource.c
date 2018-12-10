@@ -106,7 +106,7 @@ static OCStackResult GetSecurePortInfo(OCDevAddr *endpoint, uint16_t *port)
     return OC_STACK_OK;
 }
 
-#if defined(TCP_ADAPTER) && !defined(DISABLE_TCP_SERVER)
+#ifdef TCP_ADAPTER
 /* This method will retrieve the tcp port */
 static OCStackResult GetTCPPortInfo(OCDevAddr *endpoint, uint16_t *port, bool secured)
 {
@@ -542,7 +542,7 @@ OCStackResult BuildVirtualResourceResponse(const OCResource *resourcePtr,
        }
     }
 
-#if defined(TCP_ADAPTER) && !defined(DISABLE_TCP_SERVER)
+#ifdef TCP_ADAPTER
     uint16_t tcpPort = 0;
     GetTCPPortInfo(devAddr, &tcpPort, (resourcePtr->resourceProperties & OC_SECURE));
 

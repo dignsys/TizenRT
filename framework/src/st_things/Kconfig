@@ -12,7 +12,6 @@ config ST_THINGS
 	select NETUTILS_WIFI
 	select WIFI_MANAGER
 	select WPA_SUPPLICANT
-	select SCSC_WLAN
 	select NETUTILS_JSON
 	select NETUTILS_NTPCLIENT
 	depends on FS_ROMFS

@@ -55,7 +55,6 @@
  ****************************************************************************/
 #include <tinyara/config.h>
 
-#include <string.h>
 #include <debug.h>
 #include <errno.h>
 #include <tinyara/irq.h>

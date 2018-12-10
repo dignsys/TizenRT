@@ -159,7 +159,6 @@ int sem_wait(FAR sem_t *sem)
 
 		if (sem->semcount > 0) {
 			/* It is, let the task take the semaphore. */
-
 			sem->semcount--;
 			sem_addholder(sem);
 			rtcb->waitsem = NULL;

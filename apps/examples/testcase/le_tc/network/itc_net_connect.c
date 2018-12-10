@@ -24,8 +24,6 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/types.h>
-#include <arpa/inet.h>
-
 #include "tc_internal.h"
 
 #define SERVER_MSG "Hello from server"
@@ -98,7 +96,8 @@ static void *server_connect(void *ptr_num_clients)
 			*pret = ERROR;
 			pthread_exit(pret);
 		}
-		total_recv = sizeof(CLIENT_MSG);
+		total_recv = strlen(CLIENT_MSG);
+		memset(buffer, 0, BUFF_LEN);
 		while (total_recv) {
 			valrecv = recv(client_socket, buffer + recv_len, BUFF_LEN - recv_len, MSG_WAITALL);
 			printf("server recv: %s\n", buffer);
@@ -117,10 +116,10 @@ static void *server_connect(void *ptr_num_clients)
 			recv_len += valrecv;
 		}
 		strncpy(buffer + recv_len, ptr_msg, sizeof(SERVER_MSG));
-		total_send = sizeof(SERVER_MSG);
+		total_send = strlen(buffer);
 		while (total_send) {
-			valsend = send(client_socket, buffer + recv_len + send_len, sizeof(SERVER_MSG) - send_len, 0);
-			printf("server send: %s\n", buffer + recv_len + send_len);
+			valsend = send(client_socket, buffer + send_len, strlen(buffer) - send_len, 0);
+			printf("server send: %s\n", buffer);
 			if (valsend == -1) {
 				close(client_socket);
 				close(server_socket);
@@ -170,10 +169,11 @@ static void *client_connect(void *ptr_id)
 	int valrecv = 0;
 	int valsend = 0;
 	struct sockaddr_in serv_addr;
+	char client_msg[BUFF_LEN];
 	char buffer[BUFF_LEN] = {0};
 	int total_recv;
 	int total_send;
-	unsigned int recv_len = 0;
+	int recv_len = 0;
 	int send_len = 0;
 	int *pret = malloc(sizeof(int));
 	if (NULL == pret) {
@@ -196,12 +196,12 @@ static void *client_connect(void *ptr_id)
 		*pret = ret;
 		pthread_exit(pret);
 	}
-	strncpy(buffer, CLIENT_MSG, sizeof(CLIENT_MSG));
-	buffer[sizeof(CLIENT_MSG) - 3] = '0' + (*id);
-	total_send = sizeof(CLIENT_MSG);
+	strncpy(client_msg, CLIENT_MSG, sizeof(CLIENT_MSG));
+	client_msg[strlen(client_msg) - 2] = '0' + (*id);
+	total_send = strlen(client_msg);
 	while (total_send) {
-		valsend = send(sock, buffer + send_len, sizeof(CLIENT_MSG) - send_len, 0);
-		printf("client send: %s\n", buffer + send_len);
+		valsend = send(sock, client_msg + send_len, strlen(client_msg) - send_len, 0);
+		printf("client send: %s\n", client_msg);
 		if (valsend == -1) {
 			close(sock);
 			pthread_exit(pret);
@@ -214,10 +214,11 @@ static void *client_connect(void *ptr_id)
 		}
 		send_len += valsend;
 	}
-	total_recv = sizeof(SERVER_MSG);
+	total_recv = strlen(client_msg) + strlen(SERVER_MSG);
+	memset(buffer, 0, BUFF_LEN);
 	while (total_recv) {
-		valrecv = recv(sock, buffer + send_len + recv_len, BUFF_LEN - send_len - recv_len, MSG_WAITALL);
-		printf("client recv: %s\n", buffer + recv_len + send_len);
+		valrecv = recv(sock, buffer + recv_len, BUFF_LEN - recv_len, MSG_WAITALL);
+		printf("client recv: %s\n", buffer);
 		if (valrecv <= 0) {
 			close(sock);
 			*pret = ERROR;
@@ -231,13 +232,16 @@ static void *client_connect(void *ptr_id)
 		}
 		recv_len += valrecv;
 	}
-	
-	if (strncmp(buffer + sizeof(CLIENT_MSG), SERVER_MSG, strlen(SERVER_MSG)) !=  0) {
+	if (strncmp(buffer, client_msg, strlen(client_msg)) != 0) {
 		close(sock);
 		*pret = ERROR;
 		pthread_exit(pret);
 	}
-
+	if (strncmp(buffer + strlen(client_msg), SERVER_MSG, strlen(SERVER_MSG)) != 0) {
+		close(sock);
+		*pret = ERROR;
+		pthread_exit(pret);
+	}
 	sleep(CLIENT_WAIT_TIME);
 	ret = close(sock);
 	if (ret != OK) {

@@ -26,7 +26,6 @@
 #include "servman_messages.h"
 #include "mxmgmt_transport.h"
 #include "debug_scsc.h"
-#include <pthread.h>
 #include <errno.h>
 #include <tinyara/kmalloc.h>
 

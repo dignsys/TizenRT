@@ -2399,10 +2399,10 @@ static int wpa_supplicant_ctrl_iface_scan_result(struct wpa_supplicant *wpa_s, c
 {
 	char *pos, *end;
 	int ret;
-#ifndef CONFIG_ARCH_CHIP_S5JT200
-	const u8 *ie, *ie2, *osen_ie,
+#if !defined CONFIG_ARCH_CHIP_S5JT200
+	const u8 *ie, *ie2, *osen_ie;
 #endif
-		  const u8 *p2p, *mesh;
+	const u8 *p2p, *mesh;
 
 	mesh = wpa_bss_get_ie(bss, WLAN_EID_MESH_ID);
 	p2p = wpa_bss_get_vendor_ie(bss, P2P_IE_VENDOR_TYPE);
@@ -2416,18 +2416,21 @@ static int wpa_supplicant_ctrl_iface_scan_result(struct wpa_supplicant *wpa_s, c
 	pos = buf;
 	end = buf + buflen;
 
-#ifndef CONFIG_ARCH_CHIP_S5JT200
+#if !defined CONFIG_ARCH_CHIP_S5JT200
 	ret = os_snprintf(pos, end - pos, MACSTR "\t%d\t%d\t", MAC2STR(bss->bssid), bss->freq, bss->qual);
-#endif
+#else
 	ret = os_snprintf(pos, end - pos, MACSTR "\n", MAC2STR(bss->bssid), bss->freq, bss->qual);
+#endif
 	if (os_snprintf_error(end - pos, ret)) {
 		return -1;
 	}
 	pos += ret;
+#if !defined CONFIG_BRCM_WLAN
 	/* T20: We only need the BSSIDs in this response, and to ensure it does not grow
 	 *      too big, skip all the stuff we don't really need */
 	return pos - buf;
-#ifndef CONFIG_ARCH_CHIP_S5JT200
+#endif
+#if !defined CONFIG_ARCH_CHIP_S5JT200
 	ie = wpa_bss_get_vendor_ie(bss, WPA_IE_VENDOR_TYPE);
 	if (ie) {
 		pos = wpa_supplicant_ie_txt(pos, end, "WPA", ie, 2 + ie[1]);
@@ -2538,7 +2541,12 @@ static int wpa_supplicant_ctrl_iface_scan_results(struct wpa_supplicant *wpa_s, 
 
 	pos = buf;
 	end = buf + buflen;
+#if !defined CONFIG_ARCH_CHIP_S5JT20
+	ret = os_snprintf(pos, end - pos, "bssid / frequency / signal level / "
+			  "flags / ssid\n");
+#else
 	ret = os_snprintf(pos, end - pos, "bssid\n");
+#endif
 	if (os_snprintf_error(end - pos, ret)) {
 		return pos - buf;
 	}

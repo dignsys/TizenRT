@@ -57,7 +57,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <dirent.h>
 #include <libgen.h>
@@ -90,27 +89,22 @@
 #define FSCMD_BUFFER_LEN      256
 #endif
 
-#define FSCMD_ECHO_USAGE "Usage:  echo [OPTIONS] [input_text] [> or >>] > [target_file_path]\n\tOPTIONS: '-n' - do not output the trailing newline.\n\t\t '--help' - displays usage.\n"
-#define FSCMD_CAT_USAGE "Usage:  cat [OPTIONS] [source_file_path] [> or >>] [target_file_path]\n\tOPTIONS: '--help' - displays usage.\n"
-
 /** Wrapper to prevent remove information by users **/
 #define FSCMD_OUTPUT(...) printf(__VA_ARGS__)
 
 /** Define Error String **/
-#define TOO_MANY_ARGS   "%s : Too many Arguments\n"
-#define INVALID_ARGS    "%s : Invalid Arguments\n"
-#define MISSING_ARGS    "%s : Missing required argument(s)\n"
+#define TOO_MANY_ARGS   "%s Too many Arguments\n"
+#define INVALID_ARGS    "%s Invalid Arguments\n"
+#define MISSING_ARGS    "%s Missing required argument(s)\n"
 #define CMD_FAILED      "%s : %s failed\n"
 #define OUT_OF_MEMORY   "%s : out of memory\n"
 #define OUT_OF_RANGE    "%s : value out of range\n"
-#define CMD_FAILED_ERRNO  "%s : %s failed: %d\n"
 
 /** Define FS Type **/
 #define NONEFS_TYPE     "None FS"
 #define SMARTFS_TYPE    "smartfs"
 #define PROCFS_TYPE     "procfs"
 #define ROMFS_TYPE      "romfs"
-#define TMPFS_TYPE      "tmpfs"
 
 /****************************************************************************
  * Private Types
@@ -139,117 +133,6 @@ static void fscmd_free(FAR char *path)
 		free(path);
 	}
 }
-
-#ifndef CONFIG_DISABLE_ENVIRON
-/****************************************************************************
- * Name: tash_echo
- *
- * Description:
- *   Display input text or Redirects to a target file
- *
- * Usage:
- *   echo [OPTIONS] [input_text] [> or >>] [target_file_path]
- *   OPTIONS: '-n' - do not output the trailing newline.
- *            '--help' - displays usage.
- ****************************************************************************/
-static int tash_echo(int argc, char **args)
-{
-	char *dest_fullpath = NULL;
-	redirection_t direction = { FSCMD_NONE, argc };
-	char fscmd_buffer[FSCMD_BUFFER_LEN];
-	int i;
-	int fd = 1;
-	int flags;
-	int len = 0;
-	int arg_len = 0;
-	int n_opt = 1;
-	int ret = ERROR;
-
-	if (!strncmp(args[1], "--help", strlen("--help") + 1)) {
-		FSCMD_OUTPUT(FSCMD_ECHO_USAGE);
-		return OK;
-	}
-
-	if (!strncmp(args[1], "-n", 2)) {
-		n_opt = 2;
-	}
-
-	for (i = n_opt; i < argc; i++) {
-		if (strcmp(args[i], ">") == 0) {
-			direction.mode = FSCMD_TRUNCATE;
-			direction.index = i;
-			break;
-		} else if (strcmp(args[i], ">>") == 0) {
-			direction.mode = FSCMD_APPEND;
-			direction.index = i;
-			break;
-		}
-	}
-
-	if (direction.mode != FSCMD_NONE && direction.index == argc - 2) {
-		/* Redirection case */
-		flags = O_WRONLY | O_CREAT;
-		if (direction.mode == FSCMD_TRUNCATE) {
-			flags |= O_TRUNC;
-		} else {
-			flags |= O_APPEND;
-		}
-
-		/* copy contents to target file
-		 * echo <input_text> <redirection> <filepath> */
-		dest_fullpath = get_fullpath(args[argc - 1]);
-		if (!dest_fullpath) {
-			FSCMD_OUTPUT(OUT_OF_MEMORY, args[argc - 1]);
-			return ret;
-		}
-
-		fd = open(dest_fullpath, flags);
-		if (fd < 0) {
-			FSCMD_OUTPUT(CMD_FAILED_ERRNO, "echo", "open", errno);
-			goto error;
-		}
-	 } else if (direction.mode != FSCMD_NONE && direction.index != argc - 2) {
-		FSCMD_OUTPUT(INVALID_ARGS FSCMD_ECHO_USAGE, args[0]);
-		return ret;
-	 }
-
-	for (i = n_opt; i < direction.index; i++) {
-		if (i != n_opt) {
-			memcpy(fscmd_buffer + len, " ", 1);
-			len += 1;
-		}
-
-		arg_len = strlen(args[i]);
-		if ((len + arg_len) > FSCMD_BUFFER_LEN) {
-			FSCMD_OUTPUT("%s : Too long input text\n", args[0]);
-			goto error_with_close;
-		}
-		memcpy(fscmd_buffer + len, args[i], arg_len);
-		len += arg_len;
-	}
-
-	if (1 == n_opt) {
-		memcpy(fscmd_buffer + len, "\n", 1);
-		len += 1;
-	}
-
-	if (write(fd, fscmd_buffer, len) < 0) {
-		FSCMD_OUTPUT(CMD_FAILED_ERRNO, args[0], "write", errno);
-		goto error_with_close;
-	}
-
-	ret = OK;
-
-error_with_close:
-	if (fd > 2) {
-		close(fd);
-	}
-error:
-	fscmd_free(dest_fullpath);
-	return ret;
-}
-#endif
-
 #ifndef CONFIG_DISABLE_ENVIRON
 /****************************************************************************
  * Name: tash_cat
@@ -258,8 +141,7 @@ error:
  *   copies and concatenates file or redirect file to another file
  *
  * Usage:
- *   cat [OPTIONS] [source_file_path] [> or >>] [target_file_path]
- *   OPTIONS: '--help' - display the usage.
+ *   cat < > or >> > [source path] [contents or target path]
  ****************************************************************************/
 static int tash_cat(int argc, char **args)
 {
@@ -270,6 +152,7 @@ static int tash_cat(int argc, char **args)
 	int fd;
 	int destfd;
 	int i;
+	int len;
 	int flags;
 	ssize_t ret = 0;
 
@@ -288,23 +171,20 @@ static int tash_cat(int argc, char **args)
 	}
 
 	if (argc < 2) {
-		FSCMD_OUTPUT(MISSING_ARGS FSCMD_CAT_USAGE, args[0]);
-		return ERROR;
+		FSCMD_OUTPUT(MISSING_ARGS " : [> or >>] [file] [contents]\n", args[0]);
+
+		return 0;
 	} else if (argc == 2) {
-		if (!strncmp(args[1], "--help", strlen("--help") + 1)) {
-			FSCMD_OUTPUT(FSCMD_CAT_USAGE);
-			return OK;
-		}
-		/* Basic case, cat <filepath> */
+		/* Below is basic case, cat <filepath> */
 		if (direction.mode != FSCMD_NONE) {
-			FSCMD_OUTPUT(INVALID_ARGS FSCMD_CAT_USAGE, args[0]);
-			return ERROR;
+			FSCMD_OUTPUT(INVALID_ARGS " : [> or >>] [file] [contents]\n", args[0]);
+			return 0;
 		}
 
 		src_fullpath = get_fullpath(args[1]);
 		if (!src_fullpath) {
 			FSCMD_OUTPUT(OUT_OF_MEMORY, args[1]);
-			return ERROR;
+			return 0;
 		}
 
 		fd = open(src_fullpath, O_RDONLY);
@@ -332,18 +212,40 @@ static int tash_cat(int argc, char **args)
 			flags |= O_APPEND;
 		}
 
-		if (direction.index == 2) {
+		if (direction.index == 1) {
+			/* copy input contents to target file
+			 * cat <redirection> <filepath> <contents> */
+			src_fullpath = get_fullpath(args[2]);
+			if (!src_fullpath) {
+				FSCMD_OUTPUT(OUT_OF_MEMORY, args[2]);
+				return 0;
+			}
+
+			fd = open(src_fullpath, flags);
+			if (fd < 0) {
+				FSCMD_OUTPUT(CMD_FAILED, "open", src_fullpath);
+				goto error;
+			}
+			len = strlen(args[3]);
+			memcpy(fscmd_buffer, args[3], len);
+			if (write(fd, fscmd_buffer, len) < 0) {
+				FSCMD_OUTPUT(CMD_FAILED, "write", src_fullpath);
+				close(fd);
+				goto error;
+			}
+			close(fd);
+		} else if (direction.index == 2) {
 			/* copy contents from source file to target file
 			 * cat <source filepath> <redirection> <target filepath> */
 			if (strcmp(args[1], args[3]) == 0) {
 				FSCMD_OUTPUT(INVALID_ARGS "Same File name", args[1]);
-				return ERROR;
+				return 0;
 			}
 
 			src_fullpath = get_fullpath(args[1]);
 			if (!src_fullpath) {
 				FSCMD_OUTPUT(OUT_OF_MEMORY, args[1]);
-				return ERROR;
+				return 0;
 			}
 
 			fd = open(src_fullpath, O_RDONLY);
@@ -377,18 +279,20 @@ static int tash_cat(int argc, char **args)
 			close(destfd);
 		} else {
 			FSCMD_OUTPUT(INVALID_ARGS " : [> or >>] [file] [contents]\n", args[0]);
-			return ERROR;
+			return 0;
 		}
 	} else {
 		/* Wrong case */
-		FSCMD_OUTPUT(INVALID_ARGS FSCMD_CAT_USAGE, args[0]);
-		return ERROR;
+		FSCMD_OUTPUT(INVALID_ARGS " : [> or >>] [file] [contents]\n", args[0]);
+
+		return 0;
 	}
-	return OK;
+
 error:
 	fscmd_free(src_fullpath);
 	fscmd_free(dest_fullpath);
-	return ERROR;
+
+	return 0;
 }
 #endif
 #ifndef CONFIG_DISABLE_ENVIRON
@@ -949,9 +853,6 @@ static int mount_handler(FAR const char *mountpoint, FAR struct statfs *statbuf,
 	case PROCFS_MAGIC:
 		fstype = PROCFS_TYPE;
 		break;
-	case TMPFS_MAGIC:
-		fstype = TMPFS_TYPE;
-		break;
 	default:
 		fstype = NONEFS_TYPE;
 		break;
@@ -1321,9 +1222,6 @@ const static tash_cmdlist_t fs_utilcmds[] = {
 #endif
 #ifndef CONFIG_DISABLE_ENVIRON
 	{"cd",        tash_cd,        TASH_EXECMD_SYNC},
-#endif
-#ifndef CONFIG_DISABLE_ENVIRON
-	{"echo",      tash_echo,      TASH_EXECMD_SYNC},
 #endif
 #ifndef CONFIG_DISABLE_ENVIRON
 	{"ls",        tash_ls,        TASH_EXECMD_SYNC},

@@ -17,10 +17,7 @@
  ******************************************************************/
 
 #include <tinyara/config.h>
-
-#include <sys/types.h>
 #include <stdio.h>
-
 #include <tinyara/gpio.h>
 #include <iotbus/iotbus_gpio.h>
 

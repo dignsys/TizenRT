@@ -3,8 +3,14 @@
 # see kconfig-language at https://www.kernel.org/doc/Documentation/kbuild/kconfig-language.txt
 #
 
-if DRIVERS_WIRELESS && SELECT_SCSC_WLAN
+if DRIVERS_WIRELESS
 
-source drivers/wireless/scsc/Kconfig
+	if ARCH_CHIP_STM32L4
+		source drivers/wireless/brcm/Kconfig
+	endif
+
+	if ARCH_CHIP_S5J
+		source drivers/wireless/scsc/Kconfig
+	endif
 
 endif # DRIVERS_WIRELESS

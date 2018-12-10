@@ -146,7 +146,7 @@
 #endif
 
 #ifdef CONFIG_DEBUG
-#define CONFIG_DEBUG_FEATURES
+#define CONFIG_DEBUG
 #endif
 
 /* DMA configuration */

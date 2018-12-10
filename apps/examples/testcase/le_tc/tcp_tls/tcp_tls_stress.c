@@ -17,16 +17,13 @@
  ****************************************************************************/
 
 #include <tinyara/config.h>
-
-#include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <netdb.h>
-#include <pthread.h>
-
 #include <wifi_manager/wifi_manager.h>
 #include <stress_tool/st_perf.h>
+#include <netdb.h>
+#include <pthread.h>
 
 #include "mbedtls/config.h"
 #include "mbedtls/net.h"
@@ -215,11 +212,13 @@ tcp_tls_result_e tcp_tls_config_get(tls_config * config)
 
 static void wm_get_apinfo(wifi_manager_ap_config_s *apconfig)
 {
-	strncpy(apconfig->ssid, WM_AP_SSID, sizeof(WM_AP_SSID));
+	strncpy(apconfig->ssid, WM_AP_SSID, WIFIMGR_SSID_LEN-1);
+	apconfig->ssid[WIFIMGR_SSID_LEN-1] = '\0';
 	apconfig->ssid_length = strlen(WM_AP_SSID);
 	apconfig->ap_auth_type = WM_AP_AUTH;
 	if (WM_AP_AUTH != WIFI_MANAGER_AUTH_OPEN) {
-		strncpy(apconfig->passphrase, WM_AP_PASSWORD, sizeof(WM_AP_PASSWORD));
+		strncpy(apconfig->passphrase, WM_AP_PASSWORD, WIFIMGR_PASSPHRASE_LEN-1);
+		apconfig->passphrase[WIFIMGR_PASSPHRASE_LEN-1] = '\0';
 		apconfig->passphrase_length = strlen(WM_AP_PASSWORD);
 		apconfig->ap_crypto_type = WM_AP_CRYPTO;
 	}

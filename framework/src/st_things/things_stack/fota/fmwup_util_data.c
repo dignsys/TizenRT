@@ -16,7 +16,6 @@
  *
  ******************************************************************/
 
-#include <sys/types.h>
 #include <pthread.h>
 #include <json/cJSON.h>
 #include <stdlib.h>

@@ -83,11 +83,7 @@
 
 void free(FAR void *mem)
 {
-	int heap_idx;
-	heap_idx = mm_get_heapindex(mem);
-	if (heap_idx != INVALID_HEAP_IDX) {
-		mm_free(&g_mmheap[heap_idx], mem);
-	}
+	mm_free(USR_HEAP, mem);
 }
 
 #endif							/* !CONFIG_BUILD_PROTECTED || !__KERNEL__ */

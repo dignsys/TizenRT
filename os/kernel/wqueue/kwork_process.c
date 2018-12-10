@@ -130,13 +130,13 @@ void work_process(FAR struct kwork_wqueue_s *wqueue, uint32_t period, int wndx)
 	worker_t worker;
 	irqstate_t flags;
 	FAR void *arg;
-	clock_t elapsed;
+	systime_t elapsed;
 #ifndef CONFIG_SCHED_WORKQUEUE_SORTING
-	clock_t remaining;
+	systime_t remaining;
 #endif
-	clock_t stick;
-	clock_t ctick;
-	clock_t next;
+	systime_t stick;
+	systime_t ctick;
+	systime_t next;
 
 	/* Then process queued work.  We need to keep interrupts disabled while
 	 * we process items in the work list.

@@ -380,6 +380,28 @@
 #define SDIO_RESET(dev) ((dev)->reset(dev))
 
 /****************************************************************************
+ * Name: SDIO_CAPABILITIES
+ *
+ * Description:
+ *   Get capabilities (and limitations) of the SDIO driver (optional)
+ *
+ * Input Parameters:
+ *   dev   - Device-specific state data
+ *
+ * Returned Value:
+ *   Returns a bitset of status values (see SDIO_CAPS_* defines)
+ *
+ ****************************************************************************/
+
+#define SDIO_CAPABILITIES(dev) ((dev)->capabilities(dev))
+
+/* SDIO capability bits */
+
+#define SDIO_CAPS_1BIT_ONLY       0x01 /* Bit 0=1: Supports only 1-bit operation */
+#define SDIO_CAPS_DMASUPPORTED    0x02 /* Bit 1=1: Supports DMA data transfers */
+#define SDIO_CAPS_DMABEFOREWRITE  0x04 /* Bit 2=1: Executes DMA before write command */
+
+/****************************************************************************
  * Name: SDIO_STATUS
  *
  * Description:
@@ -836,6 +858,19 @@ enum sdio_clock_e {
 
 typedef uint8_t sdio_eventset_t;
 
+/* Capabilities set.  A uint8_t is big enough to hold a set of
+ * 8-capabilities/limitations.  If more are needed, change this to a
+ * uint16_t.
+ */
+
+typedef uint8_t sdio_capset_t;
+
+/* Status set.  A uint8_t is big enough to hold a set of 8 status bits.
+ * If more are needed, change this to a uint16_t.
+ */
+
+typedef uint8_t sdio_statset_t;
+
 /* This structure defines the interface between the TinyAra SDIO driver and
  * the chip- or board-specific SDIO interface.  This interface is only used
  * in architectures that support SDIO 1- or 4-bit data buses.  For SDIO
@@ -857,7 +892,8 @@ struct sdio_dev_s {
 	/* Initialization/setup */
 
 	void (*reset)(FAR struct sdio_dev_s *dev);
-	uint8_t (*status)(FAR struct sdio_dev_s *dev);
+	sdio_capset_t (*capabilities)(FAR struct sdio_dev_s *dev);
+	sdio_statset_t (*status)(FAR struct sdio_dev_s *dev);
 	void (*widebus)(FAR struct sdio_dev_s *dev, bool enable);
 	void (*clock)(FAR struct sdio_dev_s *dev, enum sdio_clock_e rate);
 	int (*attach)(FAR struct sdio_dev_s *dev);

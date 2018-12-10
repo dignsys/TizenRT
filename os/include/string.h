@@ -114,12 +114,12 @@ FAR char *strndup(FAR const char *s, size_t size);
  * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
  * @since TizenRT v1.0
  */
-FAR const char *strerror(int errnum);
+FAR const char *strerror(int);
 /**
  * @cond
  * @internal
  */
-int strerror_r(int errnum, FAR char *buf, size_t buflen);
+int strerror_r(int, FAR char *, size_t);
 /**
  * @endcond
  */
@@ -129,48 +129,61 @@ int strerror_r(int errnum, FAR char *buf, size_t buflen);
  * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
  * @since TizenRT v1.0
  */
-size_t strlen(FAR const char *s);
+size_t strlen(FAR const char *);
 /**
  * @brief get length of fixed size string
  * @details @b #include <string.h> \n
  * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
  * @since TizenRT v1.0
  */
-size_t strnlen(FAR const char *s, size_t maxlen);
+size_t strnlen(FAR const char *, size_t);
 /**
  * @brief concatenate two strings
  * @details @b #include <string.h> \n
  * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
  * @since TizenRT v1.0
  */
-FAR char *strcat(FAR char *dest, FAR const char *src);
+FAR char *strcat(FAR char *, FAR const char *);
 /**
  * @brief concatenate a string with part of another
  * @details @b #include <string.h> \n
  * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
  * @since TizenRT v1.0
  */
-FAR char *strncat(FAR char *dest, FAR const char *src, size_t n);
+FAR char *strncat(FAR char *, FAR const char *, size_t);
 /**
  * @brief compare two strings
  * @details @b #include <string.h> \n
  * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
  * @since TizenRT v1.0
  */
-int strcmp(FAR const char *cs, FAR const char *ct);
+int strcmp(FAR const char *, FAR const char *);
 /**
  * @brief compare part of two strings
  * @details @b #include <string.h> \n
  * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
  * @since TizenRT v1.0
  */
-int strncmp(FAR const char *cs, FAR const char *ct, size_t nb);
-
+int strncmp(FAR const char *, FAR const char *, size_t);
+/**
+ * @brief case-insensitive string comparisons
+ * @details @b #include <string.h> \n
+ * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
+ * @since TizenRT v1.0
+ */
+int strcasecmp(FAR const char *, FAR const char *);
+/**
+ * @brief case-insensitive string comparisons
+ * @details @b #include <string.h> \n
+ * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
+ * @since TizenRT v1.0
+ */
+int strncasecmp(FAR const char *, FAR const char *, size_t);
 /**
  * @cond
  * @internal
  */
-int strcoll(FAR const char *s1, FAR const char *s2);
+int strcoll(FAR const char *, FAR const char *s2);
 /**
  * @endcond
  */
@@ -182,8 +195,6 @@ int strcoll(FAR const char *s1, FAR const char *s2);
  */
 FAR char *strcpy(char *dest, FAR const char *src);
 /**
- * @cond
- * @internal
  * @brief copy a string and return a pointer to the end of the result
  * @details @b #include <string.h> \n
  * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
@@ -191,29 +202,19 @@ FAR char *strcpy(char *dest, FAR const char *src);
  */
 FAR char *stpcpy(FAR char *dest, FAR const char *src);
 /**
- * @endcond
- */
-/**
- * @brief copy fixed length string, returning a pointer to the array end
- * @details @b #include <string.h> \n
- * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
- * @since TizenRT v2.1 PRE
- */
-FAR char *stpncpy(FAR char *dest, FAR const char *src, size_t n);
-/**
  * @brief copy fixed length string, returning a pointer to the array end
  * @details @b #include <string.h> \n
  * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
  * @since TizenRT v1.0
  */
-FAR char *strncpy(FAR char *dest, FAR const char *src, size_t n);
+FAR char *strncpy(FAR char *, FAR const char *, size_t);
 /**
  * @brief scan a string for a byte
  * @details @b #include <string.h> \n
  * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
  * @since TizenRT v1.0
  */
-FAR char *strpbrk(FAR const char *str, FAR const char *charset);
+FAR char *strpbrk(FAR const char *, FAR const char *);
 /**
  * @brief string scanning operation
  * @details @b #include <string.h> \n
@@ -234,60 +235,48 @@ FAR char *strrchr(FAR const char *s, int c);
  * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
  * @since TizenRT v1.0
  */
-size_t strspn(FAR const char *s, FAR const char *accept);
+size_t strspn(FAR const char *, FAR const char *);
 /**
  * @brief get the length of a complementary substring
  * @details @b #include <string.h> \n
  * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
  * @since TizenRT v1.0
  */
-size_t strcspn(FAR const char *s, FAR const char *reject);
+size_t strcspn(FAR const char *, FAR const char *);
 /**
  * @brief find a substring
  * @details @b #include <string.h> \n
  * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
  * @since TizenRT v1.0
  */
-FAR char *strstr(FAR const char *str, FAR const char *substr);
+FAR char *strstr(FAR const char *, FAR const char *);
 /**
- * @cond
- * @internal
  * @brief locate a substring
  * @details @b #include <string.h> \n
  * @param[in] str src string
  * @param[in] substr substring
  * @since TizenRT v1.0
  */
-FAR char *strcasestr(FAR const char *str, FAR const char *substr);
-/**
- * @endcond
- */
-/**
- * @brief get name of signal
- * @details @b #include <string.h> \n
- * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
- * @since TizenRT v2.1 PRE
- */
-FAR char *strsignal(int signum);
+FAR char *strcasestr(FAR const char *, FAR const char *);
 /**
  * @brief split string into tokens
  * @details @b #include <string.h> \n
  * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
  * @since TizenRT v1.0
  */
-FAR char *strtok(FAR char *str, FAR const char *delim);
+FAR char *strtok(FAR char *, FAR const char *);
 /**
  * @brief split string into tokens
  * @details @b #include <string.h> \n
  * POSIX API (refer to : http://pubs.opengroup.org/onlinepubs/9699919799/)
  * @since TizenRT v1.0
  */
-FAR char *strtok_r(FAR char *str, FAR const char *delim, FAR char **saveptr);
+FAR char *strtok_r(FAR char *, FAR const char *, FAR char **);
 /**
  * @cond
  * @internal
  */
-size_t strxfrm(FAR char *s1, FAR const char *s2, size_t n);
+size_t strxfrm(FAR char *, FAR const char *, size_t n);
 /**
  * @endcond
  */

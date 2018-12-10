@@ -19,7 +19,6 @@
 #define _POSIX_C_SOURCE 200809L
 #define _BSD_SOURCE
 
-#include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
@@ -49,7 +48,6 @@
 #include "utils/things_ping.h"
 #include "framework/things_security_manager.h"
 #include "utils/things_rtos_util.h"
-#include "things_iotivity_lock.h"
 
 #define MAX_CI_ADDRESS          256
 #define RESOURCE_DISCOVERY_QUERY "/oic/res"
@@ -1307,7 +1305,6 @@ OCStackResult log_in_out_to_cloud(bool value, things_timeout_s *timeout)
 	OCStackResult res = OC_STACK_ERROR;
 	OCClientResponseHandler callback = NULL;
 	things_check_time_out_call_func calltimeout = NULL;
-	char *device_id = NULL;
 
 	if (signed_up_data == NULL || signed_up_data->access_token == NULL || strlen(signed_up_data->access_token) < 1) {
 		THINGS_LOG_E(TAG, "No Session Key Retrived from the Cloud ");
@@ -1363,12 +1360,8 @@ OCStackResult log_in_out_to_cloud(bool value, things_timeout_s *timeout)
 			goto GOTO_OUT;
 		}
 
-		iotivity_api_lock();
-		device_id = OCGetServerInstanceIDString();
-		iotivity_api_unlock();
-
 		THINGS_LOG_V(TAG, "Cloud Addr : %s", g_cloud_address);
-		THINGS_LOG_V(TAG, "device ID : %s", device_id);
+		THINGS_LOG_V(TAG, "device ID : %s", OCGetServerInstanceIDString());
 		THINGS_LOG_V(TAG, "access_token : %s", signed_up_data->access_token);
 		THINGS_LOG_V(TAG, "refresh token : %s", signed_up_data->refresh_token);
 		THINGS_LOG_V(TAG, "user ID : %s", signed_up_data->uid);
@@ -1384,7 +1377,7 @@ OCStackResult log_in_out_to_cloud(bool value, things_timeout_s *timeout)
 			things_ping_unset_mask(g_cloud_ip, PING_ST_ISCLOUD | PING_ST_SIGNIN | PING_ST_TCPCONNECT);
 		}
 
-		res = things_cloud_session(g_cloud_address, signed_up_data->uid, device_id, signed_up_data->access_token, value, callback, calltimeout, timeout);
+		res = things_cloud_session(g_cloud_address, signed_up_data->uid, OCGetServerInstanceIDString(), signed_up_data->access_token, value, callback, calltimeout, timeout);
 
 		THINGS_LOG_D(TAG, "OCCloudLogInOut return : %d", res);
 	} else {
@@ -1434,14 +1427,9 @@ OCStackResult find_cloud_resource(void)
 	char *sz_query_uri = NULL;
 	int length = MAX_CI_ADDRESS;
 	int length_query = 0;
-	char *device_id = NULL;
-
-	iotivity_api_lock();
-	device_id = OCGetServerInstanceIDString();
-	iotivity_api_unlock();
 
 	length += strlen(RESOURCE_DISCOVERY_QUERY_DI);
-	length += strlen(device_id);
+	length += strlen(OCGetServerInstanceIDString());
 	length_query = sizeof(char) * (length + 2);
 
 	if ((sz_query_uri = (char *)things_malloc(length_query)) == NULL) {
@@ -1456,7 +1444,7 @@ OCStackResult find_cloud_resource(void)
 	if (things_strcat(sz_query_uri, length_query, RESOURCE_DISCOVERY_QUERY_DI) == NULL) {
 		ret = OC_STACK_NO_MEMORY;
 	}
-	if (things_strcat(sz_query_uri, length_query, device_id) == NULL) {
+	if (things_strcat(sz_query_uri, length_query, OCGetServerInstanceIDString()) == NULL) {
 		ret = OC_STACK_NO_MEMORY;
 	}
 	THINGS_LOG_D(TAG, "Find Resource to Cloud URI : %s", sz_query_uri);
@@ -1467,9 +1455,7 @@ OCStackResult find_cloud_resource(void)
 	cb_data.cd = NULL;
 
 	if (ret != OC_STACK_NO_MEMORY) {
-		iotivity_api_lock();
 		ret = OCDoResource(NULL, OC_REST_DISCOVER, sz_query_uri, NULL, 0, CT_DEFAULT, OC_MEDIUM_QOS, &cb_data, NULL, 0);
-		iotivity_api_unlock();
 	}
 
 	if (ret != OC_STACK_OK) {
@@ -1516,11 +1502,7 @@ static OCStackResult register_server_into_cloud(es_cloud_prov_data_s *event_data
 	things_ping_set_mask(g_cloud_ip, (uint16_t) port, PING_ST_ISCLOUD);
 
 	// Get Session Key
-	char *device_id = NULL;
-	iotivity_api_lock();
-	device_id = OCGetServerInstanceIDString();
-	iotivity_api_unlock();
-	res = things_cloud_signup(g_cloud_address, device_id, event_data, handle_register_cb, handle_signup_timeout, timeout);
+	res = things_cloud_signup(g_cloud_address, OCGetServerInstanceIDString(), event_data, handle_register_cb, handle_signup_timeout, timeout);
 
 	if (res != OC_STACK_OK) {
 		THINGS_LOG_E(TAG, "Cloud Server Registration Failed : %d", res);
@@ -1540,11 +1522,7 @@ OCStackResult refresh_token_into_cloud(void)
 	if (signed_up_data == NULL || signed_up_data->access_token == NULL || strlen(signed_up_data->access_token) < 1) {
 		THINGS_LOG_E(TAG, "No Session Key Retrived from the Cloud ");
 	} else {
-		char *device_id = NULL;
-		iotivity_api_lock();
-		device_id = OCGetServerInstanceIDString();
-		iotivity_api_unlock();
-		res = things_cloud_refresh(g_cloud_address, signed_up_data->uid, device_id, signed_up_data->refresh_token, handle_refresh_token_cb);
+		res = things_cloud_refresh(g_cloud_address, signed_up_data->uid, OCGetServerInstanceIDString(), signed_up_data->refresh_token, handle_refresh_token_cb);
 
 		THINGS_LOG_D(TAG, "OCCloud Refresh Token return : %d", res);
 	}
@@ -1579,11 +1557,9 @@ int push_notification_to_cloud(const char *uri, OCRepPayload *payload)
 static char *make_cloud_address(char *ip, char *port, const char *ci_addr)
 {
 	char *ipport = (char *)ci_addr;
-	bool is_ci_addr_null = true;
 	THINGS_LOG_D(TAG, "ip=%s, port=%s, ci_addr=%s", ip, port, ci_addr);
 
 	if (ci_addr != NULL && strlen(ci_addr) > 0) {	// ci address.
-		is_ci_addr_null = false;
 		char *point = strstr(ci_addr, DEFAULT_COAP_TCP_HOST);
 		if (point) {
 			ipport = point + strlen(DEFAULT_COAP_TCP_HOST);
@@ -1595,23 +1571,13 @@ static char *make_cloud_address(char *ip, char *port, const char *ci_addr)
 	// Update Cloud Address.
 	memset(g_cloud_address, 0, MAX_CI_ADDRESS);
 	if (things_strcat(g_cloud_address, MAX_CI_ADDRESS, DEFAULT_COAP_TCP_HOST) == NULL) {
-		if (is_ci_addr_null) {
-			things_free(ipport);
-		}
 		THINGS_LOG_E(TAG, "things_strcat() is failed.");
 		return NULL;
 	}
 
 	if (things_strcat(g_cloud_address, MAX_CI_ADDRESS, ipport) == NULL) {
-		if (is_ci_addr_null) {
-			things_free(ipport);
-		}
 		THINGS_LOG_E(TAG, "things_strcat() is failed.");
 		return NULL;
-	}
-
-	if (is_ci_addr_null) {
-		things_free(ipport);
 	}
 
 	return g_cloud_address;

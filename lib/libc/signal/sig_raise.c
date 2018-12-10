@@ -56,7 +56,6 @@
 
 #include <tinyara/config.h>
 
-#include <signal.h>
 #ifndef CONFIG_DISABLE_PTHREAD
 #include <assert.h>
 #include <errno.h>
@@ -64,6 +63,7 @@
 #include <sys/types.h>
 #else
 #include <unistd.h>
+#include <signal.h>
 #endif
 
 /****************************************************************************

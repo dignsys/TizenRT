@@ -39,8 +39,29 @@ endif
 ifeq ($(CONFIG_EXAMPLES_ST_THINGS_MSG_HANDLING),y)
 CSRCS += msghandling/sample_msghandling_things.c msghandling/sample_msghandling_user.c
 endif
-
+ifeq ($(CONFIG_EXAMPLES_ST_THINGS_LED),y)
+CSRCS += led/things.c led/common_handlers.c 
+CSRCS += led/resource_capability_switch_main_0.c
+endif
+ifeq ($(CONFIG_EXAMPLES_ST_THINGS_CO2),y)
+CSRCS += co2/things.c co2/common_handlers.c 
+CSRCS += co2/resource_capability_switch_main_0.c
+CSRCS += co2/resource_capability_switchlevel_main_0.c
+CSRCS += co2/resource_capability_airqualitysensor_main_0.c
+endif
+ifeq ($(CONFIG_EXAMPLES_ST_THINGS_SMARTPLUG),y)
+CSRCS += smartplug/things.c smartplug/common_handlers.c 
+CSRCS += smartplug/resource_capability_switch_main_0.c
+CSRCS += smartplug/resource_capability_powermeter_main_0.c
+CSRCS += smartplug/resource_capability_energymeter_main_0.c
+CSRCS += smartplug/resource_capability_dustsensor_main_0.c
+CSRCS += smartplug/resource_capability_colorcontrol_main_0.c
+CSRCS += smartplug/resource_capability_doorcontrol_main_0.c
+endif
 MAINSRC = st_things_sample_main.c
+
+# Comment out the following line to disable debug messages
+# CFLAGS += -DDEBUG
 
 AOBJS = $(ASRCS:.S=$(OBJEXT))
 COBJS = $(CSRCS:.c=$(OBJEXT))

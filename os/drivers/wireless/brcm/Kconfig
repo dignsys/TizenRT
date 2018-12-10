@@ -1,0 +1,5 @@
+config BRCM_WLAN
+	bool "Broadcom Wireless Module support"
+	depends on LIBM && SCHED_WORKQUEUE && !DISABLE_PTHREAD && WPA_SUPPLICANT && ARCH_CHIP_STM32L4
+	default n
+

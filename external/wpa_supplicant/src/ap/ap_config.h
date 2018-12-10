@@ -564,7 +564,7 @@ struct hostapd_config {
 	u8 channel;
 	u8 acs;
 	struct wpa_freq_range_list acs_ch_list;
-#ifndef CONFIG_ARCH_CHIP_S5JT200
+#if !defined CONFIG_ARCH_CHIP_S5JT200 && !defined CONFIG_ARCH_CHIP_STM32L4
 	enum hostapd_hw_mode hw_mode;	/* HOSTAPD_MODE_IEEE80211A, .. */
 #else
 	int hw_mode;

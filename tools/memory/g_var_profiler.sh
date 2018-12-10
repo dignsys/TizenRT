@@ -19,61 +19,63 @@
 # File 	 : g_var_profiler.sh
 # Description : parse the global variable which size is greater than <SIZE>
 
-REF_SIZE=$1
-ELF=$2
-OUTPUT_FILE=$3
-MEMTOOL_PATH=`test -d ${0%/*} && cd ${0%/*}; pwd`
-BASE_PATH=`echo ${MEMTOOL_PATH%/*/*}`
+ref_size=$1
+path=$2
+output_file=$3
+WD=`pwd`
+prefix=`echo ${PWD%/*/*}`
 
 if [ "$1" == "--help" ]
 then
-	echo "Usage: $0 [SIZE] [ELF] [OUTPUT_FILENAME]"
+	echo "Usage: $0 [SIZE] [ELF_PATH] [OUTPUT_FILENAME]"
 	echo "This script parses the global variable which size is greater than [SIZE]"
 	echo -e "\tIf no input params are specified, below is assumed"
 	echo -e "\tSIZE : 256"
-	echo -e "\tELF : ../../build/output/bin/tinyara"
+	echo -e "\tELF_PATH : ../../build/output/bin/tinyara"
 	echo -e "\tOUTPUT_FILENAME : var_list_over_SIZEbytes.txt"
 	echo "Output file info"
 	echo -e "\tSIZE : variable size(bytes)"
 	echo -e "\tTYPE : you can refer to this site <https://sourceware.org/binutils/docs/binutils/nm.html>"
-
 	exit
 fi
 
-if [ -z ${REF_SIZE} ]; then
-	REF_SIZE=256
+if [ -z ${ref_size} ]
+then
+	ref_size=256
 fi
 
-if [ -z ${ELF} ]; then
-	ELF="${MEMTOOL_PATH}/../../build/output/bin/tinyara"
+if [ -z ${path} ]
+then
+	path="${WD}/../../build/output/bin/tinyara"
 fi
 
-if [ -z ${OUTPUT_FILE} ]; then
-	OUTPUT_FILE="var_list_over_${REF_SIZE}bytes.txt"
+if [ -z ${output_file} ]
+then
+	output_file="var_list_over_${ref_size}bytes.txt"
 fi
 
 temp_output_file="temp_var_list.txt"
 
 ## find over-size global variables through nm
-nm -S --size-sort -l $ELF > $temp_output_file
+nm -S --size-sort -l $path > $temp_output_file
 
-if [ -f ${OUTPUT_FILE} ]
+if [ -f ${output_file} ]
 then
-	rm $OUTPUT_FILE
+	rm $output_file
 fi
 
-echo "SIZE(bytes)	TYPE	VARIABLE		PATH" >> $OUTPUT_FILE
-echo "------------------------------------------------------------" >> $OUTPUT_FILE
+echo "SIZE(bytes)	TYPE	VARIABLE		PATH" >> $output_file
+echo "------------------------------------------------------------" >> $output_file
 while read line 
 do
 	IFS=' ' read -a array <<< $line
 	var_size=`echo $((16#${array[1]}))`
 	#Parse only type B, b, d, D, G, g, S, s
-	if [ ${array[2]} == "B" ] || [ ${array[2]} == "b" ] || [ ${array[2]} == "d" ] || [ ${array[2]} == "D" ] || [ ${array[2]} == "G" ] || [ ${array[2]} == "g" ] || [ ${array[2]} == "s" ] || [ ${array[2]} == "S" ] && [ $REF_SIZE -le $var_size ]; then 
-		echo -e $var_size"\t\t"${array[2]}"\t"${array[3]}"\t\t"${array[4]#$BASE_PATH} >> $OUTPUT_FILE
+	if [ ${array[2]} == "B" ] || [ ${array[2]} == "b" ] || [ ${array[2]} == "d" ] || [ ${array[2]} == "D" ] || [ ${array[2]} == "G" ] || [ ${array[2]} == "g" ] || [ ${array[2]} == "s" ] || [ ${array[2]} == "S" ] && [ $ref_size -le $var_size ]; then 
+		echo -e $var_size"\t\t"${array[2]}"\t"${array[3]}"\t\t"${array[4]#$prefix} >> $output_file
 	fi
 
 done < $temp_output_file
 rm $temp_output_file
 
-echo "Output file(${OUTPUT_FILE}) is generated."
+echo "Output file(${output_file}) is generated."

@@ -50,11 +50,9 @@
  *
  ***********************************************************************/
 
-#include <sys/types.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <pthread.h>
-
+#include <unistd.h>
 #include "kernel_sample.h"
 
 #ifndef NULL

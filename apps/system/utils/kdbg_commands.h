@@ -21,57 +21,53 @@
 
 #include <tinyara/config.h>
 
-#if defined(CONFIG_ENABLE_CPULOAD_CMD)
-int kdbg_cpuload(int argc, char **args);
-#endif
-
-#if defined(CONFIG_ENABLE_DATE_CMD)
+#if defined(CONFIG_ENABLE_DATE)
 int kdbg_date(int argc, char **args);
 #endif
 
-#if defined(CONFIG_ENABLE_DMESG_CMD)
+#if defined(CONFIG_ENABLE_DMESG)
 int kdbg_dmesg(int argc, char **args);
 #endif
 
 #ifndef CONFIG_DISABLE_ENVIRON
-#if defined(CONFIG_ENABLE_ENV_GET_CMD)
+#if defined(CONFIG_ENABLE_ENV_GET)
 int kdbg_env_get(int argc, char **args);
 #endif
 
-#if defined(CONFIG_ENABLE_ENV_SET_CMD)
+#if defined(CONFIG_ENABLE_ENV_SET)
 int kdbg_env_set(int argc, char **args);
 #endif
 
-#if defined(CONFIG_ENABLE_ENV_UNSET_CMD)
+#if defined(CONFIG_ENABLE_ENV_UNSET)
 int kdbg_env_unset(int argc, char **args);
 #endif
 #endif							/* !CONFIG_DISABLE_ENVIRON */
 
-#if defined(CONFIG_ENABLE_FREE_CMD)
+#if defined(CONFIG_ENABLE_FREE)
 int kdbg_free(int argc, char **args);
 #endif
 
-#if defined(CONFIG_ENABLE_HEAPINFO_CMD)
+#if defined(CONFIG_ENABLE_HEAPINFO)
 int kdbg_heapinfo(int argc, char **args);
 #endif
 
-#if defined(CONFIG_ENABLE_IRQINFO_CMD)
+#if defined(CONFIG_ENABLE_IRQINFO)
 int kdbg_irqinfo(int argc, char **args);
 #endif
 
-#if defined(CONFIG_ENABLE_KILL_CMD)
+#if defined(CONFIG_ENABLE_KILL)
 int kdbg_kill(int argc, char **args);
 #endif
 
-#if defined(CONFIG_ENABLE_KILLALL_CMD)
+#if defined(CONFIG_ENABLE_KILLALL)
 int kdbg_killall(int argc, char **args);
 #endif
 
-#if defined(CONFIG_ENABLE_PS_CMD)
+#if defined(CONFIG_ENABLE_PS)
 int kdbg_ps(int argc, char **args);
 #endif
 
-#if defined(CONFIG_ENABLE_STACKMONITOR_CMD)
+#if defined(CONFIG_ENABLE_STACKMONITOR)
 int kdbg_stackmonitor(int argc, char **args);
 #endif
 
@@ -79,7 +75,7 @@ int kdbg_stackmonitor(int argc, char **args);
 int kdbg_ttrace(int argc, char **args);
 #endif
 
-#if defined(CONFIG_ENABLE_UPTIME_CMD)
+#if defined(CONFIG_ENABLE_UPTIME)
 int kdbg_uptime(int argc, char **args);
 #endif
 

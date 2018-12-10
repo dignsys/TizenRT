@@ -15,8 +15,6 @@
  * language governing permissions and limitations under the License.
  *
  ****************************************************************************/
-#include <sys/types.h>
-
 #include "mbulk.h"
 #include "utils_misc.h"
 #include "dev.h"

@@ -58,7 +58,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <errno.h>
 
 /****************************************************************************
@@ -104,21 +103,21 @@
 FAR char *tempnam(FAR const char *dir, FAR const char *pfx)
 {
 	FAR char *path;
-	char *ret;
+	int ret;
 
 	if (!dir) {
 		dir = P_tmpdir;
 	}
 
 	if (!pfx) {
-		asprintf(&path, "%s/XXXXXX", dir);
+		asprintf(&path, "%s/XXXXXX.tmp", dir);
 	} else {
-		asprintf(&path, "%s/%.5sXXXXXX", dir, pfx);
+		asprintf(&path, "%s/%s-XXXXXX.tmp", dir, pfx);
 	}
 
 	if (path) {
 		ret = mktemp(path);
-		if (strncmp(ret, "", 1)) {
+		if (ret == OK) {
 			return path;
 		}
 

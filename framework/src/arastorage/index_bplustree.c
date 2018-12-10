@@ -61,6 +61,7 @@
 #include "db_options.h"
 #include "db_debug.h"
 #include "storage.h"
+#include "memb.h"
 #include "random.h"
 #include "rw_locks.h"
 

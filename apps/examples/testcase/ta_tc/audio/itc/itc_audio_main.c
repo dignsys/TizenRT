@@ -24,7 +24,6 @@
  ****************************************************************************/
 
 #include <stdio.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <tinyalsa/tinyalsa.h>
 #include "tc_common.h"
@@ -33,14 +32,13 @@
 /****************************************************************************
  * Definitions
  ****************************************************************************/
-#define AUDIO_TEST_FILE "/tmp/pcm"
+#define AUDIO_TEST_FILE "/mnt/pcm"
 #define AUDIO_DEFAULT_CHANNELS 2
 #define AUDIO_DEFAULT_RATE 16000
 #define AUDIO_DEFAULT_FORMAT PCM_FORMAT_S16_LE
 #define AUDIO_RECORD_DURATION 3//3sec
 #define INPUT_STR_LEN 16
 #define SEC_2 2
-#define PREPARE_RETRY_COUNT 10
 
 /****************************************************************************
  * Global Variables
@@ -132,7 +130,7 @@ static void itc_audio_pcm_open_n_reopen(void)
 	// re-open pcm stream, should not be able to open
 	ptr_pcm = pcm_open(0, 0, PCM_IN, NULL);
 	TC_ASSERT_LEQ_CLEANUP("pcm_open", pcm_get_file_descriptor(ptr_pcm), 0, pcm_close(g_pcm); pcm_close(ptr_pcm));
-	pcm_close(ptr_pcm);
+
 	TC_ASSERT_EQ("pcm_close", pcm_close(g_pcm), 0);
 	TC_SUCCESS_RESULT();
 }
@@ -151,7 +149,6 @@ static void itc_audio_pcm_open_n(void)
 
 	ptr_pcm = pcm_open(999, 999, PCM_IN, NULL);
 	TC_ASSERT_LEQ_CLEANUP("pcm_open", pcm_get_file_descriptor(ptr_pcm), 0, pcm_close(ptr_pcm));
-	pcm_close(ptr_pcm);
 
 	TC_SUCCESS_RESULT();
 }
@@ -976,21 +973,17 @@ static void itc_audio_pcm_readi_p(void)
 
 	printf("Record will be start for 3s, press any key to start(Total frame: %d)\n", remain);
 	fflush(stdout);
-	str = fgets(input_str, INPUT_STR_LEN - 1, stdin);
+	str = gets(input_str);
 	TC_ASSERT_NEQ_CLEANUP("pcm_readi", str, NULL, clean_all_data(fd, buffer));
 
 	while (remain > 0) {
 		frames_read = pcm_readi(g_pcm, buffer, pcm_get_buffer_size(g_pcm));
-		printf("frames_read : %d\n", frames_read);
 		if (frames_read < 0) {
 			break;
 		}
 		remain -= frames_read;
 		ret = write(fd, buffer, bytes_per_frame * frames_read);
 		TC_ASSERT_EQ_CLEANUP("pcm_readi", ret, (bytes_per_frame * frames_read), clean_all_data(fd, buffer));
-		if (remain < pcm_get_buffer_size(g_pcm)) {
-			break;
-		}
 	}
 
 	printf("Record done\n");
@@ -1049,15 +1042,14 @@ static void itc_audio_pcm_writei_p(void)
 
 	char *buffer = NULL;
 	int num_read = 0;
-	unsigned int total_frames = 0;
+	int total_frames = 0;
 	unsigned int size = 0;
-	int retry = PREPARE_RETRY_COUNT;
 
 	/* use default config here */
 	g_pcm = pcm_open(0, 0, PCM_OUT, NULL);
 	TC_ASSERT_GT_CLEANUP("pcm_writei", pcm_is_ready(g_pcm), 0, pcm_close(g_pcm));
 
-	size = pcm_frames_to_bytes(g_pcm, pcm_get_buffer_size(g_pcm));
+	size = pcm_get_buffer_size(g_pcm);
 	buffer = malloc(size);
 	TC_ASSERT_NEQ_CLEANUP("pcm_writei", buffer, NULL, pcm_close(g_pcm));
 
@@ -1067,32 +1059,16 @@ static void itc_audio_pcm_writei_p(void)
 	printf("Playback start!!\n");
 
 	do {
-		if (retry == PREPARE_RETRY_COUNT) {
-			num_read = read(fd, buffer, size);
-		}
-		if (num_read <= 0) {
-			break;
-		}
-		printf("num_read : %d\n", num_read);
+		num_read = read(fd, buffer, size);
 		if (num_read > 0) {
 			total_frames += num_read;
-			ret = pcm_writei(g_pcm, buffer, pcm_bytes_to_frames(g_pcm, size));
-			if (ret == -EPIPE) {
-				if (retry--) {
-					pcm_prepare(g_pcm);
-					continue;
-				} else {
-					printf("ERROR: writei failed due to multiple xrun \n");
-					TC_ASSERT_CLEANUP("pcm_writei", 0, clean_all_data(fd, buffer));
-				}
-			}
-			retry = PREPARE_RETRY_COUNT;
-			printf("ret : %d\n", ret);
+			ret = pcm_writei(g_pcm, buffer, pcm_bytes_to_frames(g_pcm, num_read));
 			TC_ASSERT_GEQ_CLEANUP("pcm_writei", ret, 0, clean_all_data(fd, buffer));
 		}
 	} while (num_read > 0);
 
-	printf("Playback done! Total Frames: %ul\n", pcm_bytes_to_frames(g_pcm, total_frames));
+	sleep(SEC_2);
+	printf("Playback done! Total Frames: %d\n", pcm_bytes_to_frames(g_pcm, total_frames));
 
 	clean_all_data(fd, buffer);
 	TC_SUCCESS_RESULT();

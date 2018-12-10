@@ -5,7 +5,7 @@
 ### Database
   Arastorage
 
-### File System
+### File system
   ProcFS, SmartFS
 
 ### Kernel

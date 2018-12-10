@@ -69,6 +69,7 @@
 #include <debug.h>
 
 #include <apps/readline.h>
+#include <tinyara/audio/pcm.h>
 
 /****************************************************************************
  * Pre-processor Definitions

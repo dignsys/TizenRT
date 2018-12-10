@@ -31,8 +31,7 @@
 #endif							/* CONFIG_CTRL_IFACE_UDP_IPV6 */
 
 #ifdef CONFIG_CTRL_IFACE_FIFO
-#include <sys/types.h>
-#include <pthread.h>
+#include "pthread.h"
 #endif
 
 #include "wpa_ctrl.h"

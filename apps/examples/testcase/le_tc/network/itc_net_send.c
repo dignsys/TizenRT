@@ -21,7 +21,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <pthread.h>
-#include <arpa/inet.h>
 
 #include "tc_internal.h"
 

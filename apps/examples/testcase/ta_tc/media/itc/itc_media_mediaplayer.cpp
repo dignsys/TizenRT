@@ -31,21 +31,16 @@
  ****************************************************************************/
 static const char *file_path = "/mnt/fileinputdatasource.raw";
 static const char *test_data = "dummydata";
-static int g_flag = 0;
+static int g_flag=0;
 
 static void SetUp(void)
 {
-	FILE *fp = fopen(file_path, "w");
-	if (fp != NULL) {
-		int ret = fputs("dummydata", fp);
-		if (ret != (int)strlen("dummydata")) {
-			printf("fail to fputs\n");
-		}
-		fclose(fp);
-		g_flag = 1;
-	} else {
-		printf("fail to open %s, errno : %d\n", file_path, get_errno());
-	}
+	FILE *fp;
+	fp = fopen(file_path, "w");
+	TC_ASSERT_NEQ("fopen", fp, NULL);
+	TC_ASSERT_NEQ_CLEANUP("fputs", fputs(test_data, fp), EOF, fclose(fp));
+	TC_ASSERT_EQ("fclose", fclose(fp), OK);
+	g_flag = 1;
 }
 
 static void TearDown()
@@ -64,7 +59,7 @@ static void TearDown()
 static void itc_media_MediaPlayer_create_destroy_p(void)
 {
 	media::MediaPlayer mp;
-	for (int i = 0; i < COUNT; i++) {
+	for(int i=0; i<COUNT; i++){
 		TC_ASSERT_EQ("create", mp.create(), media::PLAYER_OK);
 		TC_ASSERT_EQ("destroy", mp.destroy(), media::PLAYER_OK);
 	}
@@ -82,14 +77,14 @@ static void itc_media_MediaPlayer_create_destroy_p(void)
 static void itc_media_MediaPlayer_create_destroy_n(void)
 {
 	media::MediaPlayer mp;
-	TC_ASSERT_NEQ("destroy", mp.destroy(), media::PLAYER_OK);
+	TC_ASSERT_EQ("destroy", mp.destroy(), media::PLAYER_ERROR);
 	TC_ASSERT_EQ("create", mp.create(), media::PLAYER_OK);
-	for (int i = 0; i < COUNT; i++) {
-		TC_ASSERT_NEQ("recreate", mp.create(), media::PLAYER_OK);
+	for(int i=0; i<COUNT; i++){
+		TC_ASSERT_EQ("recreate", mp.create(), media::PLAYER_ERROR);
 	}
 	TC_ASSERT_EQ("destroy", mp.destroy(), media::PLAYER_OK);
-	for (int i = 0; i < COUNT; i++) {
-		TC_ASSERT_NEQ("destroy", mp.destroy(), media::PLAYER_OK);
+	for(int i=0; i<COUNT; i++){
+		TC_ASSERT_EQ("recreate", mp.destroy(), media::PLAYER_ERROR);
 	}
 	TC_SUCCESS_RESULT();
 }
@@ -97,7 +92,7 @@ static void itc_media_MediaPlayer_create_destroy_n(void)
 int itc_media_MediaPlayer_main(void)
 {
 	SetUp();
-	if (g_flag) {
+	if(g_flag){
 		itc_media_MediaPlayer_create_destroy_p();
 		itc_media_MediaPlayer_create_destroy_n();
 	}

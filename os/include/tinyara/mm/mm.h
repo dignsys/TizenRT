@@ -61,7 +61,6 @@
 #include <sys/types.h>
 #include <stdbool.h>
 #include <semaphore.h>
-#include <tinyara/mm/heap_regioninfo.h>
 #ifdef CONFIG_HEAPINFO_USER_GROUP
 #include <tinyara/mm/heapinfo_internal.h>
 #endif
@@ -203,16 +202,10 @@
 #define HEAPINFO_DETAIL_ALL 2
 #define HEAPINFO_DETAIL_PID 3
 #define HEAPINFO_DETAIL_FREE 4
-#define HEAPINFO_DETAIL_SPECIFIC_HEAP 5
 #define HEAPINFO_PID_ALL -1
 #define HEAPINFO_INIT_INFO 0
 #define HEAPINFO_ADD_INFO 1
 #define HEAPINFO_DEL_INFO 2
-
-#define REGION_START (size_t)regionx_start[0]
-#define REGION_SIZE  regionx_size[0]
-#define REGION_END (REGION_START + REGION_SIZE)
-#define INVALID_HEAP_IDX -1
 
 /* Determines the size of the chunk size/offset type */
 
@@ -229,14 +222,14 @@ typedef size_t mmsize_t;
 #ifdef CONFIG_DEBUG_MM_HEAPINFO
 typedef size_t mmaddress_t;		/* 32 bit address space */
 
-#if defined(CONFIG_ARCH_MIPS)
+#if (CONFIG_ARCH_MIPS)
 /* Macro gets return address of malloc API */
 #define ARCH_GET_RET_ADDRESS \
 	mmaddress_t retaddr = 0; \
 	do { \
 		asm volatile ("sw $ra, %0" : "=m" (retaddr)); \
 	} while (0);
-#elif defined(CONFIG_ARCH_ARM)
+#elif (CONFIG_ARCH_ARM)
 #define ARCH_GET_RET_ADDRESS \
 	mmaddress_t retaddr = 0; \
 	do { \
@@ -391,7 +384,8 @@ extern "C" {
  *   structure is associated with the address environment and there is
  *   no global user heap structure.
  */
-extern struct mm_heap_s g_mmheap[CONFIG_MM_NHEAPS];
+
+EXTERN struct mm_heap_s g_mmheap;
 #endif
 
 #ifdef CONFIG_MM_KERNEL_HEAP
@@ -409,12 +403,12 @@ EXTERN struct mm_heap_s g_kmmheap;
  */
 
 #include <tinyara/addrenv.h>
-#define BASE_HEAP (&ARCH_DATA_RESERVE->ar_usrheap)
+#define USR_HEAP (&ARCH_DATA_RESERVE->ar_usrheap)
 
 #else
 /* Otherwise, the user heap data structures are in common .bss */
 
-#define BASE_HEAP &g_mmheap[0]
+#define USR_HEAP &g_mmheap
 #endif
 
 /****************************************************************************
@@ -458,15 +452,15 @@ void mm_givesemaphore(FAR struct mm_heap_s *heap);
 /* Functions contained in umm_sem.c ****************************************/
 
 #if !defined(CONFIG_BUILD_PROTECTED) || !defined(__KERNEL__)
-int umm_trysemaphore(void *address);
-void umm_givesemaphore(void *address);
+int umm_trysemaphore(void);
+void umm_givesemaphore(void);
 #endif
 
 /* Functions contained in kmm_sem.c ****************************************/
 
 #ifdef CONFIG_MM_KERNEL_HEAP
-int kmm_trysemaphore(void *address);
-void kmm_givesemaphore(void *address);
+int kmm_trysemaphore(void);
+void kmm_givesemaphore(void);
 #endif
 #ifdef CONFIG_DEBUG_MM_HEAPINFO
 
@@ -661,105 +655,10 @@ void heapinfo_update_group_info(pid_t pid, int group, int type);
 void heapinfo_check_group_list(pid_t pid, char *name);
 #endif
 #endif
-void mm_is_sem_available(void *address);
+void mm_is_sem_available(void);
 
-/* Functions to get the address of heap structure */
-struct mm_heap_s *mm_get_heap(void *address);
-struct mm_heap_s *mm_get_heap_with_index(int index);
-
-int mm_get_heapindex(void *mem);
-#if CONFIG_MM_NHEAPS > 1
-struct heapinfo_total_info_s {
-	int total_heap_size;
-	int cur_free;
-	int largest_free_size;
-	int cur_dead_thread;
-	int sum_of_stacks;
-	int sum_of_heaps;
-	int cur_alloc_size;
-	int peak_alloc_size;
-};
-typedef struct heapinfo_total_info_s heapinfo_total_info_t;
-
-/**
- * @cond
- * @internal
- */
-
-/**
- * @brief Allocate memory to the specific heap.
- * @details @b #include <tinyara/mm/mm.h>\n
- *   malloc_at tries to allocate memory for a specific heap which passed by api argument.
- *   If there is no enough space to allocate, it will return NULL.
- * @param[in] heap_index Index of specific heap
- * @param[in] size size (in bytes) of the memory region to be allocated
- * 
- * @return On success, the address of the allocated memory is returned. On failure, NULL is returned.
- * @since TizenRT v2.1 PRE
- */
-void *malloc_at(int heap_index, size_t size);
-/**
- * @brief Calloc to the specific heap.
- * @details @b #include <tinyara/mm/mm.h>\n
- *   calloc_at tries to allocate memory for a specific heap which passed by api argument.
- *   If there is no enough space to allocate, it will return NULL.
- * @param[in] heap_index Index of specific heap
- * @param[in] n the number of elements to be allocated
- * @param[in] elem_size the size of elements
- * 
- * @return On success, the address of the allocated memory is returned. On failure, NULL is returned.
- * @since TizenRT v2.1 PRE
- */
-void *calloc_at(int heap_index, size_t n, size_t elem_size);
-/**
- * @brief Memalign to the specific heap.
- * @details @b #include <tinyara/mm/mm.h>\n
- *   memalign_at tries to align the memory for a specific heap which passed by api argument.
- *   If there is no enough space, it will return NULL.
- * @param[in] heap_index Index of specific heap
- * @param[in] alignment A power of two for alignment
- * @param[in] size Allocated memory size
- * 
- * @return On success, the address of the allocated memory is returned. On failure, NULL is returned.
- * @since TizenRT v2.1 PRE
- */
-void *memalign_at(int heap_index, size_t alignment, size_t size);
-/**
- * @brief Realloc to the specific heap.
- * @details @b #include <tinyara/mm/mm.h>\n
- *   realloc_at tries to allocate memory for a specific heap which passed by api argument.
- *   If there is no enough space to allocate, it will return NULL.
- * @param[in] heap_index Index of specific heap
- * @param[in] oldmem the pointer to a memory block previously allocated
- * @param[in] size the new size for the memory block
- * 
- * @return On success, the address of the allocated memory is returned. On failure, NULL is returned.
- * @since TizenRT v2.1 PRE
- */
-void *realloc_at(int heap_index, void *oldmem, size_t size);
-/**
- * @brief Zalloc to the specific heap.
- * @details @b #include <tinyara/mm/mm.h>\n
- *   zalloc_at tries to allocate memory for a specific heap which passed by api argument.
- *   If there is no enough space to allocate, it will return NULL.
- * @param[in] heap_index Index of specific heap
- * @param[in] size size (in bytes) of the memory region to be allocated
- * 
- * @return On success, the address of the allocated memory is returned. On failure, NULL is returned.
- * @since TizenRT v2.1 PRE
- */
-void *zalloc_at(int heap_index, size_t size);
-#else
-#define malloc_at(heap_index, size)              malloc(size)
-#define calloc_at(heap_index, n, elem_size)      calloc(n, elem_size)
-#define memalign_at(heap_index, alignment, size) memalign(alignment, size)
-#define realloc_at(heap_index, oldmem, size)     realloc(oldmem, size)
-#define zalloc_at(heap_index, size)              zalloc(size)
-#endif
-
-/**
- * @endcond
- */
+/* Functions to get heap information */
+struct mm_heap_s *mm_get_heap_info(void);
 
 #undef EXTERN
 #ifdef __cplusplus

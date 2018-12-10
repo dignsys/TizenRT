@@ -77,7 +77,6 @@
 #if defined(CONFIG_NETDB_DNSCLIENT) && defined(CONFIG_NETDB_DNSSERVER_BY_DHCP)
 #include <tinyara/net/dns.h>
 #endif
-
 /****************************************************************************
  * Definitions
  ****************************************************************************/
@@ -117,23 +116,6 @@
 
 #define BUFFER_SIZE             256
 
-#define DHCPC_SET_IP4ADDR(intf, ip, netmask, gateway)	        \
-	do {							\
-		int res = -1;					\
-		res = netlib_set_ipv4addr(intf, &ip);		\
-		if (res == -1) {				\
-			nvdbg("[DHCPC] set ipv4 addr error\n");	\
-		}						\
-		res = netlib_set_ipv4netmask(intf, &netmask);	\
-		if (res == -1) {				\
-			nvdbg("[DHCPC] set netmask addr error\n");	\
-		}						\
-		res = netlib_set_dripv4addr(intf, &gateway);	\
-		if (res == -1) {				\
-			nvdbg("[DHCPC] set route addr error\n");	\
-		}						\
-	} while (0)
-
 /****************************************************************************
  * Private Types
  ****************************************************************************/
@@ -156,15 +138,6 @@ struct dhcp_msg {
 	uint8_t file[128];
 #endif
 	uint8_t options[312];
-};
-
-struct dhcpc_state {
-	struct in_addr serverid;
-	struct in_addr ipaddr;
-	struct in_addr netmask;
-	struct in_addr dnsaddr;
-	struct in_addr default_router;
-	uint32_t lease_time;		/* Lease expires in this number of seconds */
 };
 
 struct dhcpc_state_s {
@@ -308,6 +281,7 @@ static int dhcpc_sendmsg(struct dhcpc_state_s *pdhcpc, struct dhcpc_state *presu
 /****************************************************************************
  * Name: dhcpc_parseoptions
  ****************************************************************************/
+
 static uint8_t dhcpc_parseoptions(struct dhcpc_state *presult, uint8_t *optptr, int len)
 {
 	uint8_t *end = optptr + len;
@@ -367,6 +341,7 @@ static uint8_t dhcpc_parseoptions(struct dhcpc_state *presult, uint8_t *optptr, 
 /****************************************************************************
  * Name: dhcpc_parsemsg
  ****************************************************************************/
+
 static uint8_t dhcpc_parsemsg(struct dhcpc_state_s *pdhcpc, int buflen, struct dhcpc_state *presult)
 {
 	if (pdhcpc->packet.op == DHCP_REPLY && memcmp(pdhcpc->packet.xid, g_dhcpc_xid, sizeof(g_dhcpc_xid)) == 0 && memcmp(pdhcpc->packet.chaddr, pdhcpc->ds_macaddr, pdhcpc->ds_maclen) == 0) {
@@ -378,9 +353,14 @@ static uint8_t dhcpc_parsemsg(struct dhcpc_state_s *pdhcpc, int buflen, struct d
 }
 
 /****************************************************************************
+ * Global Functions
+ ****************************************************************************/
+
+/****************************************************************************
  * Name: dhcpc_open
  ****************************************************************************/
-static void *dhcpc_open(const char *intf)
+
+void *dhcpc_open(const char *intf)
 {
 	struct dhcpc_state_s *pdhcpc;
 	struct sockaddr_in addr;
@@ -451,7 +431,7 @@ static void *dhcpc_open(const char *intf)
 /****************************************************************************
  * Name: dhcpc_close
  ****************************************************************************/
-static void dhcpc_close(void *handle)
+void dhcpc_close(void *handle)
 {
 	struct dhcpc_state_s *pdhcpc = (struct dhcpc_state_s *)handle;
 
@@ -470,7 +450,8 @@ int g_dhcpc_state;
 /****************************************************************************
  * Name: dhcpc_request
  ****************************************************************************/
-static int dhcpc_request(void *handle, struct dhcpc_state *presult)
+
+int dhcpc_request(void *handle, struct dhcpc_state *presult)
 {
 	if (!handle) {
 		ndbg("ERROR : handle must not be null\n");
@@ -675,46 +656,4 @@ static int dhcpc_request(void *handle, struct dhcpc_state *presult)
 #endif
 
 	return OK;
-}
-
-/****************************************************************************
- * Global Functions
- ****************************************************************************/
-/****************************************************************************
- * Name: dhcp_client_start
- ****************************************************************************/
-int dhcp_client_start(const char *intf)
-{
-	struct dhcpc_state state;
-	int ret;
-	void *dhcp_hnd = NULL;
-	ndbg("[DHCPC] External DHCPC application started\n");
-	dhcp_hnd = dhcpc_open(intf);
-	if (dhcp_hnd) {
-		ret = dhcpc_request(dhcp_hnd, &state);
-		if (ret != OK) {
-			ndbg("[DHCPC] get IP address fail\n");
-			dhcpc_close(dhcp_hnd);
-			return -1;
-		}
-		DHCPC_SET_IP4ADDR(intf, state.ipaddr, state.netmask, state.default_router);
-		ndbg("[DHCPC] IP address : %s ----\n", inet_ntoa(state.ipaddr));
-		dhcpc_close(dhcp_hnd);
-	} else {
-		ndbg("[DHCPC] Invalid dhcp handle\n");
-		return -1;
-	}
-
-	return OK;
-}
-
-/****************************************************************************
- * Name: dhcp_client_stop
- ****************************************************************************/
-void dhcp_client_stop(const char *intf)
-{
-	struct in_addr in = { .s_addr = INADDR_NONE };
-	DHCPC_SET_IP4ADDR(intf, in, in, in);
-	ndbg("[DHCPC] dhcpc_stop -release IP address (app)\n");
-	return;
 }

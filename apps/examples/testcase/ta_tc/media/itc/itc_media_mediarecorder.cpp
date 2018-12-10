@@ -41,11 +41,10 @@ using namespace media::stream;
 static void itc_media_MediaRecorder_create_destroy_p(void)
 {
 	MediaRecorder media_recorder;
-	for (int i = 0; i < COUNT; i++) {
+	for(int i=0; i<COUNT; i++){
 		TC_ASSERT_EQ("create", media_recorder.create(), RECORDER_OK);
 		TC_ASSERT_EQ("destroy", media_recorder.destroy(), RECORDER_OK);
 	}
-
 	TC_SUCCESS_RESULT();
 }
 
@@ -61,14 +60,13 @@ static void itc_media_MediaRecorder_create_destroy_n(void)
 {
 	MediaRecorder media_recorder;
 	TC_ASSERT_EQ("create", media_recorder.create(), RECORDER_OK);
-	for (int i = 0; i < COUNT; i++) {
-		TC_ASSERT_NEQ("create", media_recorder.create(), RECORDER_ERROR_NONE);
+	for(int i=0; i<COUNT; i++){
+		TC_ASSERT_EQ("create", media_recorder.create(), RECORDER_ERROR);
 	}
 	TC_ASSERT_EQ("destroy", media_recorder.destroy(), RECORDER_OK);
-
-	for (int i = 0; i < COUNT; i++) {
-			TC_ASSERT_NEQ("destroy", media_recorder.destroy(), RECORDER_ERROR_NONE);
-	}
+	for(int i=0; i<COUNT; i++){
+			TC_ASSERT_EQ("create", media_recorder.destroy(), RECORDER_ERROR);
+		}
 	TC_SUCCESS_RESULT();
 }
 

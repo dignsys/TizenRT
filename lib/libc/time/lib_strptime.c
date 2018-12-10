@@ -56,7 +56,6 @@
 
 #include <tinyara/config.h>
 #include <string.h>
-#include <strings.h>
 #include <ctype.h>
 #include <sys/time.h>
 #include <time.h>

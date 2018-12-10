@@ -42,7 +42,6 @@
 #include <sys/types.h>
 
 #include "queue.h"
-#include "tree.h"
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
@@ -70,7 +69,6 @@
 #include "uv__tcp.h"
 #include "uv__pipe.h"
 #include "uv__thread.h"
-#include "uv__signal.h"
 
 #include "uv__threadpool.h"
 #include "uv__getaddrinfo.h"
@@ -98,6 +96,5 @@
 #undef UV_WRITE_PRIVATE_FIELDS
 #undef UV_SHUTDOWN_PRIVATE_FIELDS
 #undef UV_GETADDRINFO_PRIVATE_FIELDS
-#undef UV_SIGNAL_PRIVATE_FIELDS
 
 #endif							// __uv_header__

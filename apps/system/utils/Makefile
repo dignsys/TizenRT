@@ -83,9 +83,6 @@ CSRCS += netcmd.c
 ifeq ($(CONFIG_NET_PING_CMD),y)
 CSRCS += netcmd_ping.c
 endif
-ifeq ($(CONFIG_NET_NETMON),y)
-CSRCS += netcmd_netmon.c
-endif
 endif
 
 ifeq ($(CONFIG_NETUTILS_DHCPD),y)
@@ -100,51 +97,47 @@ endif
 
 endif #CONFIG_TASH
 
-ifeq ($(CONFIG_ENABLE_CPULOAD_CMD),y)
-CSRCS += kdbg_cpuload.c
-endif
-
-ifeq ($(CONFIG_ENABLE_DATE_CMD),y)
+ifeq ($(CONFIG_ENABLE_DATE),y)
 CSRCS += kdbg_date.c
 endif
 
-ifeq ($(CONFIG_ENABLE_DMESG_CMD),y)
+ifeq ($(CONFIG_ENABLE_DMESG),y)
 CSRCS += kdbg_dmesg.c
 endif
 
 ifneq ($(CONFIG_DISABLE_ENVIRON),y)
-ifeq ($(CONFIG_ENABLE_ENV_GET_CMD),y)
+ifeq ($(CONFIG_ENABLE_ENV_GET),y)
 CSRCS += kdbg_env.c
-else ifeq ($(CONFIG_ENABLE_ENV_SET_CMD),y)
+else ifeq ($(CONFIG_ENABLE_ENV_SET),y)
 CSRCS += kdbg_env.c
-else ifeq ($(CONFIG_ENABLE_ENV_UNSET_CMD),y)
+else ifeq ($(CONFIG_ENABLE_ENV_UNSET),y)
 CSRCS += kdbg_env.c
 endif
 endif
 
-ifeq ($(CONFIG_ENABLE_FREE_CMD),y)
+ifeq ($(CONFIG_ENABLE_FREE),y)
 CSRCS += kdbg_free.c
 endif
 
-ifeq ($(CONFIG_ENABLE_HEAPINFO_CMD),y)
+ifeq ($(CONFIG_ENABLE_HEAPINFO),y)
 CSRCS += kdbg_heapinfo.c
 endif
 
-ifeq ($(CONFIG_ENABLE_IRQINFO_CMD),y)
+ifeq ($(CONFIG_ENABLE_IRQINFO),y)
 CSRCS += kdbg_irqinfo.c
 endif
 
-ifeq ($(CONFIG_ENABLE_KILL_CMD),y)
+ifeq ($(CONFIG_ENABLE_KILL),y)
 CSRCS += kdbg_kill.c
-else ifeq ($(CONFIG_ENABLE_KILLALL_CMD),y)
+else ifeq ($(CONFIG_ENABLE_KILLALL),y)
 CSRCS += kdbg_kill.c
 endif
 
-ifeq ($(CONFIG_ENABLE_PS_CMD),y)
+ifeq ($(CONFIG_ENABLE_PS),y)
 CSRCS += kdbg_ps.c
 endif
 
-ifeq ($(CONFIG_ENABLE_STACKMONITOR_CMD),y)
+ifeq ($(CONFIG_ENABLE_STACKMONITOR),y)
 CSRCS += kdbg_stackmonitor.c
 endif
 
@@ -152,7 +145,7 @@ ifeq ($(CONFIG_TTRACE),y)
 CSRCS += kdbg_ttrace.c
 endif
 
-ifeq ($(CONFIG_ENABLE_UPTIME_CMD),y)
+ifeq ($(CONFIG_ENABLE_UPTIME),y)
 CSRCS += kdbg_uptime.c
 endif
 

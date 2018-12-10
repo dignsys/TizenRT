@@ -19,7 +19,7 @@ choice
 config SELECT_WPA_SUPPLICANT
 	bool "select wpa_supplicant"
 	select WPA_SUPPLICANT
-	select NETUTILS_WIFI
+#	select NETUTILS_WIFI
 
 	---help---
 		Select the wpa_supplicant
@@ -41,14 +41,26 @@ config SELECT_NO_DRIVER
 config SELECT_SCSC_WLAN
 	bool "Enable SCSC Wireless Module"
 	select SCSC_WLAN
+	depends on ARCH_CHIP_S5J
+
+config SELECT_BRCM_WLAN
+	bool "Enable BRCM Wireless Module"
+	select BRCM_WLAN
+	depends on ARCH_CHIP_STM32L4
 
 config SELECT_PROPIETARY_WLAN
 	bool "Enable vendor-specific Wireless Module"
 
 endchoice # WiFi driver choice
 
-if SELECT_WPA_SUPPLICANT
+if SELECT_SCSC_WLAN
 source "$EXTERNALDIR/slsi_wifi/Kconfig"
+endif
+if SELECT_BRCM_WLAN
+source "$EXTERNALDIR/brcm_wifi/Kconfig"
+endif
+
+if SELECT_WPA_SUPPLICANT
 source "$EXTERNALDIR/wpa_supplicant/Kconfig"
 endif #SELECT_WPA_SUPPLICANT
 
@@ -65,21 +77,6 @@ config WIFIMGR_SOFTAP_IFNAME
 config WIFIMGR_STA_IFNAME
 	string "interface name of station mode"
 	default "wl1"
-
-config WIFIMGR_DISABLE_AUTO_GET_IP
-	bool "disable auto get ip (ipv4 dhcp)"
-	default n
-
-config DISABLE_EXTERNAL_AUTOCONNECT
-	bool "disable external autoconnect"
-	default n
-
-if DISABLE_EXTERNAL_AUTOCONNECT
-config WIFIMGR_INTERNAL_AUTOCONNECT
-	bool "enable internal auto(re)connect"
-	default y
-
-endif #WIFIMGR_DISABLE_EXTERNAL_AUTOCONNECT
 
 endif #WIFI_MANAGER
 

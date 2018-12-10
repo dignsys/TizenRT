@@ -157,7 +157,6 @@ depend: .depend
 clean:
 	$(call DELFILE, .built)
 	$(call CLEAN)
-	$(call DEL_GRPCFILES)
 
 distclean: clean
 	$(call DELFILE, Make.dep)

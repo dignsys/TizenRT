@@ -19,10 +19,9 @@
 
 include ${TOPDIR}/.config
 include ${TOPDIR}/tools/Config.mk
-ARCH_FAMILY = $(patsubst "%",%,$(CONFIG_ARCH_FAMILY))
-include ${TOPDIR}/arch/$(CONFIG_ARCH)/src/$(ARCH_FAMILY)/Toolchain.defs
+include ${TOPDIR}/arch/arm/src/armv7-r/Toolchain.defs
 
-ifeq ($(CONFIG_BCM4390X_USE_EXTMEM),y)
+ifeq ($(CONFIG_DDR),y)
 LDSCRIPT = flash-ddr.ld
 else
 LDSCRIPT = flash-sram.ld
@@ -34,13 +33,13 @@ ifeq ($(WINTOOL),y)
   DIRUNLINK = $(TOPDIR)/tools/unlink.sh
   MKDEP = $(TOPDIR)/tools/mkwindeps.sh
   ARCHINCLUDES = -I. -isystem "${shell cygpath -w $(TOPDIR)/include}" -isystem "${shell cygpath -w $(TOPDIR)/../framework/include}" -isystem "${shell cygpath -w $(TOPDIR)/../external/include}"
-  ARCHXXINCLUDES = -I. -isystem "${shell cygpath -w $(TOPDIR)/include}" -isystem "${shell cygpath -w $(TOPDIR)/../framework/include}" -I "${shell cygpath -w $(TOPDIR)/../external/include}" -isystem "${shell cygpath -w $(TOPDIR)/../external/include/libcxx}"
+  ARCHXXINCLUDES = -I. -isystem "${shell cygpath -w $(TOPDIR)/include}" -isystem "${shell cygpath -w $(TOPDIR)/include/cxx}" -isystem "${shell cygpath -w $(TOPDIR)/include/uClibc++}" -isystem "${shell cygpath -w $(TOPDIR)/../external/include}"
   ARCHSCRIPT = -T "${shell cygpath -w $(TOPDIR)/../build/configs/$(CONFIG_ARCH_BOARD)/scripts/$(LDSCRIPT)}"
 else
   # Linux/Cygwin-native toolchain
   MKDEP = $(TOPDIR)/tools/mkdeps$(HOSTEXEEXT)
   ARCHINCLUDES = -I. -isystem $(TOPDIR)/include -isystem $(TOPDIR)/../framework/include -isystem $(TOPDIR)/../external/include
-  ARCHXXINCLUDES = -I. -isystem $(TOPDIR)/include -isystem $(TOPDIR)/../framework/include -I $(TOPDIR)/../external/include -isystem $(TOPDIR)/../external/include/libcxx
+  ARCHXXINCLUDES = -I. -isystem $(TOPDIR)/include -isystem $(TOPDIR)/include/cxx -isystem $(TOPDIR)/include/uClibc++ -isystem $(TOPDIR)/../external/include
   ARCHSCRIPT = -T$(TOPDIR)/../build/configs/$(CONFIG_ARCH_BOARD)/scripts/$(LDSCRIPT)
 endif
 
@@ -48,14 +47,15 @@ CC = $(CROSSDEV)gcc
 CXX = $(CROSSDEV)g++
 CPP = $(CROSSDEV)gcc -E
 LD = $(CROSSDEV)ld
-AR = $(CROSSDEV)ar rcs
-NM = $(CROSSDEV)nm
+AR = $(ARCROSSDEV)ar rcs
+NM = $(ARCROSSDEV)nm
 OBJCOPY = $(CROSSDEV)objcopy
 OBJDUMP = $(CROSSDEV)objdump
 
 ARCHCCVERSION = ${shell $(CC) -v 2>&1 | sed -n '/^gcc version/p' | sed -e 's/^gcc version \([0-9\.]\)/\1/g' -e 's/[-\ ].*//g' -e '1q'}
 ARCHCCMAJOR = ${shell echo $(ARCHCCVERSION) | cut -d'.' -f1}
 ARCHCCMINOR = ${shell echo $(ARCHCCVERSION) | cut -d'.' -f2}
+
 
 ifeq ($(CONFIG_DEBUG_SYMBOLS),y)
   ARCHOPTIMIZATION = -g
@@ -82,9 +82,6 @@ ARCHPICFLAGS = -fpic -msingle-pic-base -mpic-register=r10
 CFLAGS = $(ARCHCFLAGS) $(ARCHWARNINGS) $(ARCHOPTIMIZATION) $(ARCHCPUFLAGS) $(ARCHINCLUDES) $(ARCHDEFINES) $(EXTRADEFINES) -pipe
 CPICFLAGS = $(ARCHPICFLAGS) $(CFLAGS)
 CXXFLAGS = $(ARCHCXXFLAGS) $(ARCHWARNINGSXX) $(ARCHOPTIMIZATION) $(ARCHCPUFLAGS) $(ARCHXXINCLUDES) $(ARCHDEFINES) $(EXTRADEFINES) -pipe
-ifeq ($(CONFIG_LIBCXX),y)
-CXXFLAGS += -DCONFIG_WCHAR_BUILTIN
-endif
 CXXPICFLAGS = $(ARCHPICFLAGS) $(CXXFLAGS)
 CPPFLAGS = $(ARCHINCLUDES) $(ARCHDEFINES) $(EXTRADEFINES)
 AFLAGS = $(CFLAGS) -D__ASSEMBLY__
@@ -103,10 +100,19 @@ HOSTINCLUDES = -I.
 HOSTCFLAGS = -Wall -Wstrict-prototypes -Wshadow -Wundef -g -pipe
 HOSTLDFLAGS =
 
-define DOWNLOAD
-  $(TOPDIR)/../build/configs/cy4390x/cy4390x_download.sh $(1)
-endef
+ifeq ($(CONFIG_HOST_WINDOWS),y)
+  HOSTEXEEXT = .exe
+else
+  HOSTEXEEXT =
+endif
 
-define MAKE_BOARD_SPECIFIC_BIN
-  $(TOPDIR)/../build/configs/cy4390x/cy4390x_make_bin.sh --bin $(1) --ext $(2)
-endef
+ifeq ($(WINTOOL),y)
+  # Windows-native host tools
+  DIRLINK = $(TOPDIR)/tools/copydir.sh
+  DIRUNLINK = $(TOPDIR)/tools/unlink.sh
+  MKDEP = $(TOPDIR)/tools/mkwindeps.sh
+else
+  # Linux/Cygwin-native host tools
+  MKDEP = $(TOPDIR)/tools/mkdeps$(HOSTEXEEXT)
+endif
+

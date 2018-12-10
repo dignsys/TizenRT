@@ -1,0 +1,11 @@
+#
+# For a description of the syntax of this configuration file,
+# see kconfig-language at https://www.kernel.org/doc/Documentation/kbuild/kconfig-language.txt
+#
+
+config EXAMPLES_STM32L4_DEMO
+	bool "stm32l4 demo example"
+	default n
+	depends on ARCH_BOARD_STM32L4
+	---help---
+		Enable the stm32l4 demo example

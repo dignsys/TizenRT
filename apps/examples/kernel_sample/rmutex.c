@@ -50,10 +50,8 @@
  *
  ***********************************************************************/
 
-#include <sys/types.h>
 #include <stdio.h>
 #include <pthread.h>
-
 #include "kernel_sample.h"
 
 #ifndef NULL

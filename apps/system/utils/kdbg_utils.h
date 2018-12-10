@@ -20,7 +20,7 @@
 #define __APPS_SYSTEM_UTILS_KDBG_UTILS_H
 
 #include <tinyara/config.h>
-#ifdef CONFIG_ENABLE_STACKMONITOR_CMD
+#ifdef CONFIG_ENABLE_STACKMONITOR
 #include <tinyara/clock.h>
 #include <sys/types.h>
 

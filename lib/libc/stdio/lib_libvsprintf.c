@@ -1097,7 +1097,6 @@ int lib_vsprintf(FAR struct lib_outstream_s *obj, FAR const char *src, va_list a
 #ifdef CONFIG_LIBC_FLOATINGPOINT
 	int trunc;
 #endif
-	int trunc_sfmt;
 	uint8_t fmt;
 #endif
 	uint8_t flags;
@@ -1140,7 +1139,6 @@ int lib_vsprintf(FAR struct lib_outstream_s *obj, FAR const char *src, va_list a
 #ifdef CONFIG_LIBC_FLOATINGPOINT
 		trunc = CONFIG_LIBC_FLOATPRECISION;
 #endif
-		trunc_sfmt = 0;
 #endif
 
 		/* Process each format qualifier. */
@@ -1216,7 +1214,6 @@ int lib_vsprintf(FAR struct lib_outstream_s *obj, FAR const char *src, va_list a
 #ifdef CONFIG_LIBC_FLOATINGPOINT
 					trunc = n;
 #endif
-					trunc_sfmt = n;
 				} else {
 					width = n;
 				}
@@ -1276,21 +1273,12 @@ int lib_vsprintf(FAR struct lib_outstream_s *obj, FAR const char *src, va_list a
 #ifndef CONFIG_NOPRINTF_FIELDWIDTH
 			swidth = strlen(ptmp);
 			prejustify(obj, fmt, 0, width, swidth);
-
+#endif
 			/* Concatenate the string into the output */
 
-			if (trunc_sfmt) {
-				while (*ptmp && trunc_sfmt--) {
-					obj->put(obj, *ptmp);
-					ptmp++;
-				}
-			} else
-#endif
-			{
-				while (*ptmp) {
-					obj->put(obj, *ptmp);
-					ptmp++;
-				}
+			while (*ptmp) {
+				obj->put(obj, *ptmp);
+				ptmp++;
 			}
 
 			/* Perform left-justification operations. */

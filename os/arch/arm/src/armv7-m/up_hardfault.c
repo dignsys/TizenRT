@@ -140,14 +140,14 @@ int up_hardfault(int irq, FAR void *context, FAR void *arg)
 		/* Fetch the instruction that caused the Hard fault */
 
 		uint16_t insn = *pc;
-		hfdbg("  PC: %p INSN: %04x\n", pc, insn);
+//		hfdbg("  PC: %p INSN: %04x\n", pc, insn);
 
 		/* If this was the instruction 'svc 0', then forward processing
 		 * to the SVCall handler
 		 */
 
 		if (insn == INSN_SVC0) {
-			hfdbg("Forward SVCall\n");
+//			hfdbg("Forward SVCall\n");
 			return up_svcall(irq, context, arg);
 		}
 	}

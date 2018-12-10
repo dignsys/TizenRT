@@ -17,7 +17,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 #include <ctype.h> // isspace
 
 #include "bootstrap_info.h"

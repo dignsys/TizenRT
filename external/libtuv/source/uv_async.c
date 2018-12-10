@@ -45,16 +45,11 @@
 
 static void uv__async_event(uv_loop_t *loop, struct uv__async *w, unsigned int nevents)
 {
-	QUEUE queue;
 	QUEUE *q;
 	uv_async_t *h;
 
-	QUEUE_MOVE(&loop->async_handles, &queue);
-	while (!QUEUE_EMPTY(&queue)) {
-		q = QUEUE_HEAD(&queue);
+	QUEUE_FOREACH(q, &loop->async_handles) {
 		h = QUEUE_DATA(q, uv_async_t, queue);
-		QUEUE_REMOVE(q);
-		QUEUE_INSERT_TAIL(&loop->async_handles, q);
 
 		if (h->pending == 0) {
 			continue;

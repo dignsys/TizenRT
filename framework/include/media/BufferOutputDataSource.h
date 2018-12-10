@@ -31,13 +31,16 @@
 
 #include <media/OutputDataSource.h>
 
+typedef ssize_t(*OnBufferDataReached)(void* buffer, size_t size);
+//TODO - The Callback mechanism will be modified.
+
 namespace media {
 namespace stream {
 /**
  * @class
  * @brief This class is buffer output data structure
  * @details @b #include <media/BufferOutputDataSource.h>
- * @since TizenRT v2.0
+ * @since TizenRT v2.0 PRE
  */
 class BufferOutputDataSource : public OutputDataSource
 {
@@ -46,9 +49,16 @@ public:
 	 * @brief Constructs an empty BufferOutputDataSource.
 	 * @details @b #include <media/BufferOutputDataSource.h>
 	 * Delete the default construct
-	 * @since TizenRT v2.0
+	 * @since TizenRT v2.0 PRE
 	 */
-	BufferOutputDataSource();
+	BufferOutputDataSource() = delete;
+	/**
+	 * @brief Constructs an empty BufferOutputDataSource.
+	 * @details @b #include <media/BufferOutputDataSource.h>
+	 * param[in] callback The callback that the callback function
+	 * @since TizenRT v2.0 PRE
+	 */
+	BufferOutputDataSource(OnBufferDataReached callback);
 	/**
 	 * @brief Constructs a new object provide with audio configuration
 	 * @details @b #include <media/BufferOutputDataSource.h>
@@ -56,25 +66,25 @@ public:
 	 * param[in] sampleRate The sampleRate that the sample rate of audio
 	 * param[in] pcmFormat  The pcmFormat that the pcm format of audio
 	 * param[in] callback   The callback that the callback function
-	 * @since TizenRT v2.0
+	 * @since TizenRT v2.0 PRE
 	 */
-	BufferOutputDataSource(unsigned int channels, unsigned int sampleRate, audio_format_type_t pcmFormat);
+	BufferOutputDataSource(unsigned int channels, unsigned int sampleRate, audio_format_type_t pcmFormat, OnBufferDataReached callback);
 	/**
 	 * @brief Copy constructs for BufferOutputDataSource.
 	 * @details @b #include <media/BufferOutputDataSource.h>
-	 * @since TizenRT v2.0
+	 * @since TizenRT v2.0 PRE
 	 */
-	BufferOutputDataSource(const BufferOutputDataSource &source);
+	BufferOutputDataSource(const BufferOutputDataSource& source);
 	/**
 	 * @brief Operator= for BufferOutputDataSource.
 	 * @details @b #include <media/BufferOutputDataSource.h>
-	 * @since TizenRT v2.0
+	 * @since TizenRT v2.0 PRE
 	 */
-	BufferOutputDataSource &operator=(const BufferOutputDataSource &source);
+	BufferOutputDataSource& operator=(const BufferOutputDataSource& source);
 	/**
 	 * @brief Deconstructs an empty BufferOutputDataSource.
 	 * @details @b #include <media/BufferOutputDataSource.h>
-	 * @since TizenRT v2.0
+	 * @since TizenRT v2.0 PRE
 	 */
 	virtual ~BufferOutputDataSource();
 
@@ -82,38 +92,38 @@ public:
 	 * @brief Whether file is ready to be write.
 	 * @details @b #include <media/BufferOutputDataSource.h>
 	 * @return True.
-	 * @since TizenRT v2.0
+	 * @since TizenRT v2.0 PRE
 	 */
 	bool isPrepare() override;
 	/**
 	 * @brief Open the file
 	 * @details @b #include <media/BufferOutputDataSource.h>
 	 * @return True.
-	 * @since TizenRT v2.0
+	 * @since TizenRT v2.0 PRE
 	 */
 	bool open() override;
 	/**
 	 * @brief Close the file
 	 * @details @b #include <media/BufferOutputDataSource.h>
 	 * @return True.
-	 * @since TizenRT v2.0
+	 * @since TizenRT v2.0 PRE
 	 */
 	bool close() override;
 
 	/**
-	 * @brief Write the file
+	 * @brief Puts the file data
 	 * @details @b #include <media/BufferOutputDataSource.h>
-	 * param[in] buf poiter to a buffer
-	 * param[in] size Number of size to write
-	 * @return Data size written to buf.
-	 * @since TizenRT v2.0
+	 * @param[in] buf The buf that buffer to be written to the file
+	 * @param[in] size The size that the size of the buffer
+	 * @return if there is nothing to write, it returns 0
+	 *         if error occurred, it returns -1, else written size returns
+	 * @since TizenRT v2.0 PRE
 	 */
-	ssize_t write(unsigned char *buf, size_t size);
+	ssize_t write(unsigned char* buf, size_t size) override;
 
 private:
-	bool mIsPrepare;
+	OnBufferDataReached mCallback;
 };
-
 } // namespace stream
 } // namespace media
 

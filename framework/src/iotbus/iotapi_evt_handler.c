@@ -16,7 +16,6 @@
  *
  ****************************************************************************/
 
-#include <sys/types.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>

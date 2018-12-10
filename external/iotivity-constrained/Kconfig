@@ -1,0 +1,68 @@
+#
+# For a description of the syntax of this configuration file,
+# see kconfig-language at https://www.kernel.org/doc/Documentation/kbuild/kconfig-language.txt
+#
+
+menuconfig ENABLE_IOTIVITY_CONSTRAINED
+	bool "enable / disable iotivity constrained stack"
+	default n
+	select NET_LWIP_NETDB
+	select TIME_EXTENDED
+	select ARCH_STDARG_H
+	---help---
+		select to enable the iotivity constrained stack in tinyara
+
+if ENABLE_IOTIVITY_CONSTRAINED
+
+comment "IOTIVITY CONSTRAINED Config Parameters"
+
+config IOTIVITY_CONSTRAINED_RELEASE_VERSION
+	string "iotivity constrained stack version"
+	default "GETTING STARTED"
+	---help---
+		define this to iotivity constrained stack release veriosn in use
+
+config IOTIVITY_CONSTRAINED_SERVER
+	bool "enable an iotivity constrained sever role"
+	default y
+	---help---
+		select to enable an iotivity constrained server role
+
+config IOTIVITY_CONSTRAINED_CLIENT
+	bool "enable an iotivity constrained client role"
+	default n
+	---help---
+		select to enable an iotivity constrained client role
+
+config IOTIVITY_CONSTRAINED_SECURED
+	bool "enable iotivity constrained security"
+	default n
+	select NET_SECURITY_TLS
+	---help---
+		select to enable the security for iotivity constrained stack in tinyara
+
+config IOTIVITY_CONSTRAINED_DEBUG
+    bool "enable debug mode build"
+    default n
+    ---help---
+        select to enable a debug mode build with verbose debug output
+
+config IOTIVITY_CONSTRAINED_TCP
+    bool "enable iotivity constrained TCP support"
+    default n
+    ---help---
+        select to enable iotivity constrained to support for TCP endpoints and CoAP over TCP (RFC 8323)
+
+config IOTIVITY_CONSTRAINED_IPV4
+    bool "enable iotivity constrained IPV4"
+    default y
+    ---help---
+        select to enable iotivity constrained to support for IPV4
+
+config IOTIVITY_CONSTRAINED_IPV6
+    bool "enable iotivity constrained IPV6"
+    default n
+    ---help---
+        select to enable iotivity constrained to support for IPV6
+
+endif # ENABLE_IOTIVITY_CONSTRAINED

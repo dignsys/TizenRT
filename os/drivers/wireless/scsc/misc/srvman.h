@@ -19,8 +19,6 @@
 #ifndef _SRVMAN_H
 #define _SRVMAN_H
 
-#include <sys/types.h>
-
 struct srvman;
 
 void srvman_init(struct srvman *srvman, struct scsc_mx *mx);

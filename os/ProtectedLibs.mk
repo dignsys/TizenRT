@@ -95,7 +95,7 @@ USERLIBS += $(LIBRARIES_DIR)$(DELIM)libexternal$(LIBEXT)
 
 # Add libraries for iotivity support
 
-ifeq ($(CONFIG_ENABLE_IOTIVITY),y)
+ifeq ($(CONFIG_IOTIVITY_SCONS_BUILD),y)
 USERLIBS += $(LIBRARIES_DIR)$(DELIM)liboctbstack$(LIBEXT)
 USERLIBS += $(LIBRARIES_DIR)$(DELIM)libc_common$(LIBEXT)
 USERLIBS += $(LIBRARIES_DIR)$(DELIM)libconnectivity_abstraction$(LIBEXT)
@@ -112,6 +112,13 @@ TINYARALIBS += $(LIBRARIES_DIR)$(DELIM)libmbedx509$(LIBEXT)
 TINYARALIBS += $(LIBRARIES_DIR)$(DELIM)libmbedtls$(LIBEXT)
 TINYARALIBS += $(LIBRARIES_DIR)$(DELIM)libmbedcrypto$(LIBEXT)
 endif
+endif
+
+# Add libraries for iotivity constrained support
+ifeq ($(CONFIG_ENABLE_IOTIVITY_CONSTRAINED),y)
+TINYARALIBS += $(LIBRARIES_DIR)$(DELIM)libiotivity-constrained-client$(LIBEXT)
+TINYARALIBS += $(LIBRARIES_DIR)$(DELIM)libiotivity-constrained-server$(LIBEXT)
+TINYARALIBS += $(LIBRARIES_DIR)$(DELIM)libiotivity-constrained-client-server$(LIBEXT)
 endif
 
 # Add libraries for audio module

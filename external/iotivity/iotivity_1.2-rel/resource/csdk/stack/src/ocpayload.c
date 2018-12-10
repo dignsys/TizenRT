@@ -1707,7 +1707,7 @@ OCResourcePayload* OCDiscoveryPayloadGetResource(OCDiscoveryPayload* payload, si
     return NULL;
 }
 
-#if !defined(TCP_ADAPTER) || defined(DISABLE_TCP_SERVER)
+#ifndef TCP_ADAPTER
 static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t securePort)
 #else
 static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t securePort,
@@ -1812,13 +1812,13 @@ static OCResourcePayload* OCCopyResource(const OCResource* res, uint16_t secureP
                                             );
     pl->secure = (res->resourceProperties & OC_SECURE) != 0;
     pl->port = securePort;
-#if defined(TCP_ADAPTER) && !defined(DISABLE_TCP_SERVER)
+#ifdef TCP_ADAPTER
     pl->tcpPort = tcpPort;
 #endif
     return pl;
 }
 
-#if !defined(TCP_ADAPTER) || defined(DISABLE_TCP_SERVER)
+#ifndef TCP_ADAPTER
 void OCDiscoveryPayloadAddResource(OCDiscoveryPayload* payload, const OCResource* res,
                                    uint16_t securePort)
 {

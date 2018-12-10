@@ -73,6 +73,7 @@
 #include <tinyara/fs/fs.h>
 #include <tinyara/arch.h>
 #include <tinyara/audio/audio.h>
+#include <mqueue.h>
 
 #include <arch/irq.h>
 

@@ -61,7 +61,7 @@
 #include <tinyara/config.h>
 
 #include <sys/types.h>
-#include <strings.h>
+#include <string.h>
 #include <ctype.h>
 
 /****************************************************************************

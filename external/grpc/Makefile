@@ -64,7 +64,6 @@ CXXSRCS		=
 CXXFLAGS += -D__TizenRT__
 CXXFLAGS += -I./extlib/include -I./extlib/zlib -I./third_party/cares
 CXXFLAGS += -I .
-CFLAGS += -D__TizenRT__
 CFLAGS	+= -I third_party/cares/.
 
 CSRCS	+= \
@@ -529,7 +528,7 @@ depend: .depend
 clean:
 	$(call DELFILE, .built)
 	$(call CLEAN)
-	$(Q) find . -name "*.o" -exec rm -rf {} \;
+	find . -name "*.o" -exec rm -rf {} \;
 
 distclean: clean
 	$(call DELFILE, Make.dep)

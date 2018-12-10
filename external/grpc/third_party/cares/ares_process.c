@@ -18,7 +18,12 @@
 #include "ares_setup.h"
 
 #ifdef HAVE_SYS_UIO_H
+// TODO(TizenRT)
+#if defined(__TINYARA__)
+#  include <uio.h>
+#else
 #  include <sys/uio.h>
+#endif // defined(__TINYARA__)
 #endif
 #ifdef HAVE_NETINET_IN_H
 #  include <netinet/in.h>

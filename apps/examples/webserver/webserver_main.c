@@ -50,7 +50,6 @@
 
 #include <tinyara/config.h>
 
-#include <sys/types.h>
 #include <sys/ioctl.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -58,7 +57,6 @@
 #include <unistd.h>
 #include <time.h>
 #include <debug.h>
-#include <pthread.h>
 
 #include <net/if.h>
 #include <netinet/in.h>

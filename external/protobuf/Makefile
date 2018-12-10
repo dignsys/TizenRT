@@ -212,7 +212,7 @@ depend: .depend
 clean:
 	$(call DELFILE, .built)
 	$(call CLEAN)
-	$(Q) find . -name "*.o" -exec rm -rf {} \; # Tobe fixed
+	find . -name "*.o" -exec rm -rf {} \; # Tobe fixed
 
 distclean: clean
 	$(call DELFILE, Make.dep)

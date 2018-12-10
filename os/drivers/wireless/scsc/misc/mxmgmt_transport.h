@@ -32,8 +32,6 @@
 
 /** Uses */
 //#include <sys/wait.h>
-#include <sys/types.h>
-
 #include <tinyara/kthread.h>
 #include "mifstream.h"
 

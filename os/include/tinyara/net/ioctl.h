@@ -197,10 +197,6 @@
 
 #define SIOCGIFCONF      _SIOC(0x0052)	/* Get NIC list */
 
-/* Network monitor **********************************************************/
-#define SIOCGETSOCK		 _SIOC(0x0053)  /* Get socket info */
-#define SIOCGDSTATS      _SIOC(0x0054)  /* Get dev stats */
-
 /****************************************************************************
  * Type Definitions
  ****************************************************************************/

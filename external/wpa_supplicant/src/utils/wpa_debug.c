@@ -562,9 +562,9 @@ int wpa_debug_open_file(const char *path)
 		return -1;
 	}
 #ifndef _WIN32
-#ifndef CONFIG_ARCH_CHIP_S5JT200
+#if !defined CONFIG_ARCH_CHIP_S5JT200 && !defined CONFIG_ARCH_CHIP_STM32L4
 	setvbuf(out_file, NULL, _IOLBF, 0);
-#endif							/* CONFIG_ARCH_CHIP_S5JT200 */
+#endif							/* CONFIG_ARCH_CHIP_S5JT200 & CONFIG_ARCH_CHIP_STM32L4 */
 #endif							/* _WIN32 */
 #else							/* CONFIG_DEBUG_FILE */
 	(void)path;
@@ -588,9 +588,9 @@ void wpa_debug_close_file(void)
 void wpa_debug_setup_stdout(void)
 {
 #ifndef _WIN32
-#ifndef CONFIG_ARCH_CHIP_S5JT200
+#if !defined CONFIG_ARCH_CHIP_S5JT200 && !defined CONFIG_ARCH_CHIP_STM32L4
 	setvbuf(stdout, NULL, _IOLBF, 0);
-#endif							/* CONFIG_ARCH_CHIP_S5JT200 */
+#endif							/* CONFIG_ARCH_CHIP_S5JT200 & CONFIG_ARCH_CHIP_STM32L4 */
 #endif							/* _WIN32 */
 }
 

@@ -1,0 +1,12 @@
+#
+# For a description of the syntax of this configuration file,
+# see kconfig-language at https://www.kernel.org/doc/Documentation/kbuild/kconfig-language.txt
+#
+
+config EXAMPLES_IOTIVITY_CONSTRAINED_SIMPLESERVER
+	bool "Enable building IoTivity Constrained Simple Server Samples"
+	default n
+	depends on ENABLE_IOTIVITY_CONSTRAINED
+	---help---
+		Enable building IoTivity Constrained Simple Server Samples
+

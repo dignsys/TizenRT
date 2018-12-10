@@ -35,7 +35,6 @@
 #include <net/lwip/pbuf.h>
 #include <net/lwip/stats.h>
 #include <net/lwip/ip_addr.h>
-#include <net/lwip/snmp.h>
 
 #include <net/lwip/netif/etharp.h>
 #include <net/lwip/ethip6.h>

@@ -351,6 +351,46 @@
 #define SPI_REGISTERCALLBACK(d, c, a) \
 	((d)->ops->registercallback ? (d)->ops->registercallback(d, c, a) : -ENOSYS)
 
+/* SPI Device Macros ********************************************************/
+
+/* This builds a SPI devid from its type and index */
+
+#define SPIDEV_ID(type,index) ((((uint32_t)(type)  & 0xffff) << 16) | \
+                                ((uint32_t)(index) & 0xffff))
+
+/* This retrieves the fields from a SPI devid */
+
+#define SPIDEVID_TYPE (devid) (((uint32_t)(devid) >> 16) & 0xffff)
+#define SPIDEVID_INDEX(devid)  ((uint32_t)(devid)        & 0xffff)
+
+/* These are standard definitions for the defined SPI device IDs.  The index
+ * argument, n, is the instance number.  This should be zero if there is
+ * only one instance of the SPI device on the SPI bus. Indices greater than
+ * zero discriminate the additional devices of the same type on the SPI bus.
+ */
+
+#define SPIDEV_NONE(n)          SPIDEV_ID(SPIDEV_NONE,          (n))
+#define SPIDEV_MMCSD(n)         SPIDEV_ID(SPIDEV_MMCSD,         (n))
+#define SPIDEV_FLASH(n)         SPIDEV_ID(SPIDEV_FLASH,         (n))
+#define SPIDEV_ETHERNET(n)      SPIDEV_ID(SPIDEV_ETHERNET,      (n))
+#define SPIDEV_DISPLAY(n)       SPIDEV_ID(SPIDEV_DISPLAY,       (n))
+#define SPIDEV_CAMERA(n)        SPIDEV_ID(SPIDEV_CAMERA,        (n))
+#define SPIDEV_WIRELESS(n)      SPIDEV_ID(SPIDEV_WIRELESS,      (n))
+#define SPIDEV_TOUCHSCREEN(n)   SPIDEV_ID(SPIDEV_TOUCHSCREEN,   (n))
+#define SPIDEV_EXPANDER(n)      SPIDEV_ID(SPIDEV_EXPANDER,      (n))
+#define SPIDEV_MUX(n)           SPIDEV_ID(SPIDEV_MUX,           (n))
+#define SPIDEV_AUDIO_DATA(n)    SPIDEV_ID(SPIDEV_AUDIO_DATA,    (n))
+#define SPIDEV_AUDIO_CTRL(n)    SPIDEV_ID(SPIDEV_AUDIO_CTRL,    (n))
+#define SPIDEV_EEPROM(n)        SPIDEV_ID(SPIDEV_EEPROM,        (n))
+#define SPIDEV_ACCELEROMETER(n) SPIDEV_ID(SPIDEV_ACCELEROMETER, (n))
+#define SPIDEV_BAROMETER(n)     SPIDEV_ID(SPIDEV_BAROMETER,     (n))
+#define SPIDEV_TEMPERATURE(n)   SPIDEV_ID(SPIDEV_TEMPERATURE,   (n))
+#define SPIDEV_IEEE802154(n)    SPIDEV_ID(SPIDEV_IEEE802154,    (n))
+#define SPIDEV_CONTACTLESS(n)   SPIDEV_ID(SPIDEV_CONTACTLESS,   (n))
+#define SPIDEV_CANBUS(n)        SPIDEV_ID(SPIDEV_CANBUS,        (n))
+#define SPIDEV_USBHOST(n)       SPIDEV_ID(SPIDEV_USBHOST,       (n))
+#define SPIDEV_USER(n)          SPIDEV_ID(SPIDEV_USER,          (n))
+
 /****************************************************************************
  * Public Types
  ****************************************************************************/

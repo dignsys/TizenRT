@@ -303,8 +303,6 @@ struct netconn {
 #endif							/* LWIP_TCP */
 	/* A callback function that is informed about events for this netconn */
 	netconn_callback callback;
-	/* pid information that generates netconn */
-	pid_t pid;
 };
 
 /* Register an Network connection event */

@@ -18,7 +18,6 @@
 
 #define _POSIX_C_SOURCE 200809L
 #define _BSD_SOURCE				// for the usleep
-#include <sys/types.h>
 #include <string.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,7 +28,6 @@
 #include "ocpayload.h"
 
 #include "things_def.h"
-#include "things_iotivity_lock.h"
 #include "things_common.h"
 #include "logging/things_logger.h"
 #include "utils/things_malloc.h"
@@ -57,9 +55,14 @@ static handle_request_func_type g_handle_request_set_cb = NULL;
 
 extern things_server_builder_s *g_builder;
 
+static int g_handle_res_cnt = 0;
+static char **g_handle_res_list = NULL;
 static handle_request_func_type g_handle_req_cb = NULL;
+static get_notify_obs_uri_cb g_get_notify_obs_uri = NULL;
 
 static handle_request_interface_cb g_handle_request_interface_cb = NULL;
+
+static stop_softap_func_type g_stop_soft_ap_cb = NULL;
 
 static pthread_t g_req_handle;
 
@@ -174,9 +177,7 @@ OCEntityHandlerResult send_response(OCRequestHandle request_handle, OCResourceHa
 
 		THINGS_LOG_V(TAG, "\t\t\tRes. : %s ( %d )", (response.ehResult == OC_EH_OK ? "NORMAL" : "ERROR"), response.ehResult);
 
-		iotivity_api_lock();
 		OCStackResult ret = OCDoResponse(&response);
-		iotivity_api_unlock();
 		THINGS_LOG_V(TAG, "\t\t\tMsg. Out? : (%s)", (ret == OC_STACK_OK) ? "SUCCESS" : "FAIL");
 		if (ret != OC_STACK_OK) {
 			eh_result = OC_EH_ERROR;
@@ -189,83 +190,6 @@ OCEntityHandlerResult send_response(OCRequestHandle request_handle, OCResourceHa
 	return eh_result;
 }
 
-static OCEntityHandlerResult convert_ap_infor(things_resource_s *target_resource, access_point_info_s *p_list, int list_cnt)
-{
-	things_representation_s *rep = NULL;
-
-	if (list_cnt == 0 || p_list == NULL) {
-		THINGS_LOG_E(TAG, "Scaned AP list is NULL ");
-		return OC_EH_ERROR;
-	}
-
-	if (target_resource->rep == NULL) {
-		rep = things_create_representation_inst(NULL);
-		target_resource->things_set_representation(target_resource, rep);
-	} else {
-		rep = target_resource->rep;
-	}
-	things_representation_s **child_rep = (things_representation_s **)things_malloc(list_cnt * sizeof(things_representation_s *));
-	access_point_info_s *wifi_scan_iter = p_list;
-	int iter;
-	for (iter = 0; iter < list_cnt; ++iter) {
-		THINGS_LOG_V(TAG, "e_ssid : %s", wifi_scan_iter->e_ssid);
-		THINGS_LOG_V(TAG, "signal_level : %s", wifi_scan_iter->signal_level);
-		THINGS_LOG_V(TAG, "bss_id : %s", wifi_scan_iter->bss_id);
-		THINGS_LOG_V(TAG, "sec_type : %s", wifi_scan_iter->sec_type);
-		THINGS_LOG_V(TAG, "enc_type : %s", wifi_scan_iter->enc_type);
-		child_rep[iter] = things_create_representation_inst(NULL);
-		child_rep[iter]->things_set_value(child_rep[iter], SEC_ATTRIBUTE_AP_MACADDR, wifi_scan_iter->bss_id);
-		child_rep[iter]->things_set_value(child_rep[iter], SEC_ATTRIBUTE_AP_RSSI, wifi_scan_iter->signal_level);
-		child_rep[iter]->things_set_value(child_rep[iter], SEC_ATTRIBUTE_AP_SSID, wifi_scan_iter->e_ssid);
-		child_rep[iter]->things_set_value(child_rep[iter], SEC_ATTRIBUTE_AP_SECTYPE, wifi_scan_iter->sec_type);
-		child_rep[iter]->things_set_value(child_rep[iter], SEC_ATTRIBUTE_AP_ENCTYPE, wifi_scan_iter->enc_type);
-		wifi_scan_iter = wifi_scan_iter->next;
-	}
-	rep->things_set_arrayvalue(rep, SEC_ATTRIBUTE_AP_ITEMS, list_cnt, child_rep);
-	for (iter = 0; iter < list_cnt; ++iter) {
-		/*! Changed by st_things for memory Leak fix
-		 */
-		things_release_representation_inst(child_rep[iter]);
-		child_rep[iter] = NULL;
-	}
-	things_free(child_rep);
-	child_rep = NULL;
-	return OC_EH_OK;
-}
-
-static OCEntityHandlerResult get_ap_scan_result(things_resource_s *target_resource)
-{
-	THINGS_LOG_D(TAG, THINGS_FUNC_ENTRY);
-	OCEntityHandlerResult eh_result = OC_EH_ERROR;
-	access_point_info_s *p_list = NULL;
-	int list_cnt = 0;
-	int result = 0;
-	result = things_get_ap_list(&p_list, &list_cnt);
-	if (result) {
-		if (list_cnt > 0) {
-			THINGS_LOG_V(TAG, "Get Access points list!!! %d ", list_cnt);
-			eh_result = convert_ap_infor(target_resource, p_list, list_cnt);
-		} else if (list_cnt == 0) {
-			THINGS_LOG_V(TAG, "'0' Access points!!!!");
-			eh_result = OC_EH_OK;
-		}
-	} else {
-		THINGS_LOG_E(TAG, "GET AP Searching List FUNC Failed!!!!");
-	}
-	if (p_list != NULL) {
-	// free p_list
-		access_point_info_s *p_list_curr;
-		access_point_info_s *p_list_next;
-		p_list_curr = p_list;
-		while (p_list_curr != NULL) {
-			p_list_next = p_list_curr->next;
-			things_free(p_list_curr);
-			p_list_curr = p_list_next;
-		}
-		p_list = NULL;
-	}
-	return eh_result;
-}
 /**
  * This functions will replace the get_ap_scan_result(~~)
  */
@@ -273,15 +197,12 @@ static OCEntityHandlerResult get_provisioning_info(things_resource_s *target_res
 {
 	OCEntityHandlerResult eh_result = OC_EH_ERROR;
 
+	const char *device_id = OCGetServerInstanceIDString();
 	const char *device_rt = dm_get_things_device_type(0);
 	bool is_owned = false;
 	bool is_reset = things_get_reset_mask(RST_ALL_FLAG);
 
-	iotivity_api_lock();
-	const char *device_id = OCGetServerInstanceIDString();
-	OCStackResult res = OCGetDeviceOwnedState(&is_owned);
-	iotivity_api_unlock();
-	if (OC_STACK_OK != res) {
+	if (OC_STACK_OK != OCGetDeviceOwnedState(&is_owned)) {
 		THINGS_LOG_E(TAG, "Failed to get device owned state, Informing as UNOWNED~!!!!");
 		is_owned = false;
 	}
@@ -320,9 +241,7 @@ static OCEntityHandlerResult trigger_reset_request(things_resource_s *target_res
 	things_resource_s *clone_resource = NULL;
 	bool isOwned;
 
-	iotivity_api_lock();
 	OCGetDeviceOwnedState(&isOwned);
-	iotivity_api_unlock();
 
 	if (isOwned == false) {
 		return OC_EH_NOT_ACCEPTABLE;
@@ -357,6 +276,30 @@ static OCEntityHandlerResult trigger_reset_request(things_resource_s *target_res
 	return eh_result;
 }
 
+static OCEntityHandlerResult trigger_stop_ap_request(things_resource_s *target_resource, bool stop_ap)
+{
+	OCEntityHandlerResult eh_result = OC_EH_ERROR;
+
+	THINGS_LOG_D(TAG, "==> STOP SOFT AP : %s", (stop_ap == true ? "YES" : "NO"));
+
+	if (stop_ap == true) {
+		if (NULL != g_stop_soft_ap_cb) {
+			if (1 == g_stop_soft_ap_cb(stop_ap)) {
+				THINGS_LOG_D(TAG, "Stop Soft AP notified Successfully");
+				eh_result = OC_EH_OK;
+			} else {
+				THINGS_LOG_D(TAG, "Stop Soft AP notified, BUT DENIED");
+				eh_result = OC_EH_ERROR;
+			}
+		}
+	} else {
+		THINGS_LOG_D(TAG, "stop_ap = %d, So, can not stop AP.", stop_ap);
+		eh_result = OC_EH_OK;
+	}
+
+	return eh_result;
+}
+
 static OCEntityHandlerResult trigger_abort_request(things_resource_s *target_resource, things_es_enrollee_abort_e abort_es)
 {
 	OCEntityHandlerResult eh_result = OC_EH_ERROR;
@@ -385,10 +328,13 @@ static OCEntityHandlerResult set_provisioning_info(things_resource_s *target_res
 	OCEntityHandlerResult eh_result = OC_EH_ERROR;
 
 	bool reset = false;
+	bool stop_ap = false;
 	int64_t abort_es = 0;
 
 	if (target_resource->rep->things_get_bool_value(target_resource->rep, SEC_ATTRIBUTE_PROV_RESET, &reset) == true) {
 		eh_result = trigger_reset_request(target_resource, reset);
+	} else if (target_resource->rep->things_get_bool_value(target_resource->rep, SEC_ATTRIBUTE_PROV_TERMINATE_AP, &stop_ap) == true) {
+		eh_result = trigger_stop_ap_request(target_resource, stop_ap);
 #ifdef CONFIG_ST_THINGS_EASYSETUP_ABORT
 	} else if (target_resource->rep->things_get_int_value(target_resource->rep, SEC_ATTRIBUTE_PROV_ABORT, &abort_es) == true) {
 		eh_result = trigger_abort_request(target_resource, (things_es_enrollee_abort_e) abort_es);
@@ -432,6 +378,7 @@ static OCEntityHandlerResult process_post_request(things_resource_s **target_res
 
 static OCEntityHandlerResult process_get_request(things_resource_s *target_resource)
 {
+
 	OCEntityHandlerResult eh_result = OC_EH_ERROR;
 
 	char *device_id = NULL;
@@ -449,9 +396,6 @@ static OCEntityHandlerResult process_get_request(things_resource_s *target_resou
 	} else if (strstr(target_resource->uri, URI_FIRMWARE) != NULL) {
 		eh_result = fmwup_get_data(target_resource);
 #endif
-	} else if (strstr(target_resource->uri, URI_SEC) != NULL && strstr(target_resource->uri, URI_ACCESSPOINTLIST) != NULL) {
-		// X. Get request for the Access point list
-		eh_result = get_ap_scan_result(target_resource);
 	} else {
 		if (g_handle_request_get_cb != NULL) {
 			int ret = g_handle_request_get_cb(target_resource);
@@ -533,6 +477,16 @@ int notify_things_observers(const char *uri, const char *query)
 	if (NULL != uri) {
 		int remainLen = MAX_RESOURCE_LEN - 1;
 		char tempUri[MAX_RESOURCE_LEN] = { 0 };
+
+		if (NULL != g_get_notify_obs_uri) {
+			char *temp = g_get_notify_obs_uri(uri, query);
+			if (NULL != temp) {
+				things_strncpy(tempUri, temp, remainLen);
+				remainLen -= strnlen(tempUri, MAX_RESOURCE_LEN - 1);
+				things_free(temp);
+			}
+		}
+
 		if (strnlen(tempUri, MAX_RESOURCE_LEN - 1) < 1) {
 			things_strncpy(tempUri, uri, remainLen);
 			remainLen -= strnlen(tempUri, MAX_RESOURCE_LEN - 1);
@@ -540,7 +494,6 @@ int notify_things_observers(const char *uri, const char *query)
 
 		THINGS_LOG_D(TAG, "%s resource notifies to observers.", tempUri);
 
-		iotivity_api_lock();
 		for (int iter = 0; iter < g_builder->res_num; iter++) {
 			if (strstr(g_builder->gres_arr[iter]->uri, tempUri) != NULL) {
 				OCStackResult ret2 = OCNotifyAllObservers((OCResourceHandle) g_builder->gres_arr[iter]->resource_handle,
@@ -557,7 +510,6 @@ int notify_things_observers(const char *uri, const char *query)
 				break;
 			}
 		}
-		iotivity_api_unlock();
 	}
 
 	THINGS_LOG_D(TAG, THINGS_FUNC_EXIT);
@@ -623,9 +575,7 @@ OCEntityHandlerResult entity_handler(OCEntityHandlerFlag flag, OCEntityHandlerRe
 		return eh_result;
 	}
 
-	iotivity_api_lock();
 	const char *uri = OCGetResourceUri(entity_handler_request->resource);
-	iotivity_api_unlock();
 
 	// Observe Request Handling
 	if (flag & OC_OBSERVE_FLAG) {
@@ -702,6 +652,19 @@ void init_handler()
 void deinit_handler()
 {
 	g_quit_flag = 1;
+
+	int iter = 0;
+	if (g_handle_res_list != NULL) {
+		for (iter = 0; iter < g_handle_res_cnt; iter++) {
+			if (g_handle_res_list[iter] != NULL) {
+				things_free(g_handle_res_list[iter]);
+				g_handle_res_list[iter] = NULL;
+			}
+		}
+		things_free(g_handle_res_list);
+		g_handle_res_list = NULL;
+	}
+	g_handle_res_cnt = 0;
 }
 
 struct things_request_handler_s *get_handler_instance()

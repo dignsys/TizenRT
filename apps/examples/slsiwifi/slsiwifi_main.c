@@ -57,7 +57,6 @@ sem_t g_sem_result;
 sem_t g_sem_join;
 static uint8_t g_join_result = 0;
 #define  WPA_MAX_SSID_LEN (4*32+1)	/* SSID encoded in a string - worst case is all 4-octet hex digits + '\0' */
-#define  BASE_HEAP_INDEX 0
 
 /****************************************************************************
  * Defines
@@ -105,7 +104,7 @@ static struct mm_heap_s *g_user_heap;
 int g_memstat_total = 0;
 static int getMemUsage(void)
 {
-	g_user_heap = mm_get_heap_with_index(BASE_HEAP_INDEX);
+	g_user_heap = mm_get_heap_info();
 	printf("\n\tCurrent memory usage (total): %d bytes\n", g_user_heap->total_alloc_size);
 	return g_user_heap->total_alloc_size;
 }
@@ -119,7 +118,7 @@ int getMemLeaks(void)
 		// situations where the the blocks are freed while
 		// exiting
 		//print heapinfo
-		heapinfo_parse(mm_get_heap_with_index(BASE_HEAP_INDEX), HEAPINFO_DETAIL_ALL, HEAPINFO_PID_ALL);
+		heapinfo_parse(mm_get_heap_info(), HEAPINFO_TRACE);
 		printf(" ______________________________________________________________ \n");
 		printf("|                                                              |\n");
 		printf("| WARNING: %6.6d bytes leaked during this run                 |\n", result);

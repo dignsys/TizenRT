@@ -16,8 +16,6 @@
  *
  ****************************************************************************/
 
-#include <stdio.h>
-#include <string.h>
 #include <media/FileInputDataSource.h>
 #include "tc_common.h"
 
@@ -27,31 +25,18 @@ static unsigned char *buf;
 
 static void SetUp(void)
 {
-	buf = new unsigned char[21];
-	if (buf == nullptr) {
-		printf("fail to allocate buffer\n");
-	}
-
 	FILE *fp = fopen(dummyfilepath, "w");
-	if (fp != NULL) {
-		int ret = fputs(testData, fp);
-		if (ret != (int)strlen(testData)) {
-			printf("fail to fputs\n");
-		}
-		fclose(fp);
-	} else {
-		printf("fail to open %s, errno : %d\n", dummyfilepath, get_errno());
-	}
+	fputs(testData, fp);
+	fclose(fp);
+
+	buf = new unsigned char[21];
 }
 
 static void TearDown()
 {
-	int ret = remove(dummyfilepath);
-	if (ret != 0) {
-		printf("fail to remove %s, errno : %d\n", dummyfilepath, get_errno());
-	}
+	remove(dummyfilepath);
 
-	delete[] buf;
+	delete buf;
 }
 
 static void utc_media_FileInputDataSource_getChannels_p(void)
@@ -75,15 +60,6 @@ static void utc_media_FileInputDataSource_getPcmFormat_p(void)
 	media::stream::FileInputDataSource source(dummyfilepath);
 
 	TC_ASSERT_EQ("utc_media_FileInputDataSource_getPcmFormat", source.getPcmFormat(), media::AUDIO_FORMAT_TYPE_S16_LE);
-
-	TC_SUCCESS_RESULT();
-}
-
-static void utc_media_FileInputDataSource_getAudioType_p(void)
-{
-	media::stream::FileInputDataSource source(dummyfilepath);
-
-	TC_ASSERT_EQ("utc_media_FileInputDataSource_getAudioType", source.getAudioType(), media::AUDIO_TYPE_INVALID);
 
 	TC_SUCCESS_RESULT();
 }
@@ -114,16 +90,6 @@ static void utc_media_FileInputDataSource_setPcmFormat_p(void)
 	source.setPcmFormat(media::AUDIO_FORMAT_TYPE_S8);
 
 	TC_ASSERT_EQ("utc_media_FileInputDataSource_setPcmFormat", source.getPcmFormat(), media::AUDIO_FORMAT_TYPE_S8);
-
-	TC_SUCCESS_RESULT();
-}
-
-static void utc_media_FileInputDataSource_setAudioType_p(void)
-{
-	media::stream::FileInputDataSource source(dummyfilepath);
-	source.setAudioType(media::AUDIO_TYPE_MP3);
-
-	TC_ASSERT_EQ("utc_media_FileInputDataSource_setAudioType", source.getAudioType(), media::AUDIO_TYPE_MP3);
 
 	TC_SUCCESS_RESULT();
 }
@@ -200,19 +166,32 @@ static void utc_media_FileInputDataSource_read_p(void)
 
 static void utc_media_FileInputDataSource_read_n(void)
 {
-	/* read without open */
-	{
-		media::stream::FileInputDataSource source(dummyfilepath);
-		memset(buf, 0, 21);
+	media::stream::FileInputDataSource source(dummyfilepath);
+	memset(buf, 0, 21);
 
-		TC_ASSERT_EQ("utc_media_FileInputDataSource_read", source.read(buf, 100), EOF);
-	}
-	/* read nullptr buffer */
-	{
-		media::stream::FileInputDataSource source(dummyfilepath);
+	TC_ASSERT_EQ("utc_media_FileInputDataSource_read", source.read(buf, 100), 0);
 
-		TC_ASSERT_EQ("utc_media_FileInputDataSource_read", source.read(nullptr, 100), EOF);
-	}
+	TC_SUCCESS_RESULT();
+}
+
+static void utc_media_FileInputDataSource_readAt_p(void)
+{
+	media::stream::FileInputDataSource source(dummyfilepath);
+	memset(buf, 0, 21);
+	source.open();
+
+	TC_ASSERT_EQ("utc_media_FileInputDataSource_readAt", source.readAt(1, 0, buf, 100), (int)strlen(testData + 1));
+
+	source.close();
+	TC_SUCCESS_RESULT();
+}
+
+static void utc_media_FileInputDataSource_readAt_n(void)
+{
+	media::stream::FileInputDataSource source(dummyfilepath);
+	memset(buf, 0, 21);
+
+	TC_ASSERT_LEQ("utc_media_FileInputDataSource_readAt", source.readAt(1, 0, buf, 100), 0);
 
 	TC_SUCCESS_RESULT();
 }
@@ -223,24 +202,19 @@ int utc_media_FileInputDataSource_main(void)
 	utc_media_FileInputDataSource_getChannels_p();
 	utc_media_FileInputDataSource_getSampleRate_p();
 	utc_media_FileInputDataSource_getPcmFormat_p();
-	utc_media_FileInputDataSource_getAudioType_p();
-
 	utc_media_FileInputDataSource_setChannels_p();
 	utc_media_FileInputDataSource_setSampleRate_p();
 	utc_media_FileInputDataSource_setPcmFormat_p();
-	utc_media_FileInputDataSource_setAudioType_p();
-
 	utc_media_FileInputDataSource_open_p();
 	utc_media_FileInputDataSource_open_n();
-
 	utc_media_FileInputDataSource_close_p();
 	utc_media_FileInputDataSource_close_n();
-
 	utc_media_FileInputDataSource_isPrepare_p();
 	utc_media_FileInputDataSource_isPrepare_n();
-
 	utc_media_FileInputDataSource_read_p();
 	utc_media_FileInputDataSource_read_n();
+	utc_media_FileInputDataSource_readAt_p();
+	utc_media_FileInputDataSource_readAt_n();
 	TearDown();
 	return 0;
 }

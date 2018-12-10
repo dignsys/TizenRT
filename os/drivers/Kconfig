@@ -440,6 +440,18 @@ config FOTA_DRIVER
 source drivers/syslog/Kconfig
 source drivers/ttrace/Kconfig
 
+menuconfig MMCSD
+	bool "MMC/SD Driver Support"
+	default n
+	---help---
+		Support for MMC/SD block drivers.  MMC/SD block drivers based on
+		SPI and SDIO/MCI interfaces are supported.  See include/tinary/mmcsd.h
+		and include/tinary/sdio.h for further information.
+
+if MMCSD
+source drivers/mmcsd/Kconfig
+endif # MMCSD
+
 comment "Wireless Device Options"
 
 menuconfig DRIVERS_WIRELESS

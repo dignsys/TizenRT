@@ -62,7 +62,6 @@
 
 #include <tinyara/config.h>
 
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/select.h>
@@ -72,7 +71,6 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <string.h>
-#include <strings.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <libgen.h>

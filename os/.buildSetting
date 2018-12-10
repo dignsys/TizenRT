@@ -1,0 +1,4 @@
+#Mon Sep 03 14:25:55 KST 2018
+buildOption.buildOption=nettest
+buildOption.board=stm32l4xr
+toolchain.path=/home/osboxes/tizenrt-studio/rt-ide/tools/arm-none-eabi-gcc-6.3.1/bin

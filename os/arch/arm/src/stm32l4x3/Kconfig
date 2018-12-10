@@ -1,0 +1,14 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+if ARCH_BOARD_STM32L4x3
+
+config STM32L4X3_BUTTON
+	bool "Enable STM32L4x3 user button"
+	default y
+	---help---
+		Enables user button test on Nucleo board with low level GPIO EINT
+
+endif # ARCH_BOARD_STM32L4x3

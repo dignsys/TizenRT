@@ -19,8 +19,6 @@
 #ifndef __SLSI_LOG_CLIENTS_H__
 #define __SLSI_LOG_CLIENTS_H__
 
-#include <sys/types.h>
-
 struct slsi_dev;
 
 struct slsi_log_client {

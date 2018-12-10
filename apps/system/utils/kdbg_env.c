@@ -19,14 +19,14 @@
 /// @brief  functions to set/unset a environment value
 #include <tinyara/config.h>
 
-#if defined(CONFIG_ENABLE_ENV_GET_CMD) || defined(CONFIG_ENABLE_ENV_SET_CMD) || defined(CONFIG_ENABLE_ENV_UNSET_CMD)
+#if defined(CONFIG_ENABLE_ENV_GET) || defined(CONFIG_ENABLE_ENV_SET) || defined(CONFIG_ENABLE_ENV_UNSET)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #endif
 
-#ifdef CONFIG_ENABLE_ENV_SET_CMD
+#ifdef CONFIG_ENABLE_ENV_SET
 int kdbg_env_set(int argc, char **args)
 {
 	int ret;
@@ -48,7 +48,7 @@ int kdbg_env_set(int argc, char **args)
 }
 #endif
 
-#ifdef CONFIG_ENABLE_ENV_UNSET_CMD
+#ifdef CONFIG_ENABLE_ENV_UNSET
 int kdbg_env_unset(int argc, char **args)
 {
 	int ret;
@@ -70,7 +70,7 @@ int kdbg_env_unset(int argc, char **args)
 }
 #endif
 
-#ifdef CONFIG_ENABLE_ENV_GET_CMD
+#ifdef CONFIG_ENABLE_ENV_GET
 int kdbg_env_get(int argc, char **args)
 {
 	char *env_ptr;

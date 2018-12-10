@@ -56,7 +56,7 @@
 
 #include <tinyara/config.h>
 
-#include <strings.h>
+#include <string.h>
 #include <ctype.h>
 
 /****************************************************************************

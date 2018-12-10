@@ -7,7 +7,7 @@
 
 ## Network Protocols
 
-This directory contains most of the Network Protocols.  
+This directory contains most of the network protocols.  
 include:
 
     dhcpc     - Dynamic Host Configuration Protocol (DHCP) client.

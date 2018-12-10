@@ -159,21 +159,21 @@ _vectors:
 
 /* Processor Exceptions */
 
-	.word	IDLE_STACK			/* Vector  0: Reset stack pointer */
-	.word	__start				/* Vector  1: Reset vector */
-	.word	tiva_nmi			/* Vector  2: Non-Maskable Interrupt (NMI) */
+	.word	IDLE_STACK		/* Vector  0: Reset stack pointer */
+	.word	__start			/* Vector  1: Reset vector */
+	.word	tiva_nmi		/* Vector  2: Non-Maskable Interrupt (NMI) */
 	.word	tiva_hardfault		/* Vector  3: Hard fault */
-	.word	tiva_mpu			/* Vector  4: Memory management (MPU) */
+	.word	tiva_mpu		/* Vector  4: Memory management (MPU) */
 	.word	tiva_busfault		/* Vector  5: Bus fault */
 	.word	tiva_usagefault		/* Vector  6: Usage fault */
 	.word	tiva_reserved		/* Vector  7: Reserved */
 	.word	tiva_reserved		/* Vector  8: Reserved */
 	.word	tiva_reserved		/* Vector  9: Reserved */
 	.word	tiva_reserved		/* Vector 10: Reserved */
-	.word	tiva_svcall			/* Vector 11: SVC call */
+	.word	tiva_svcall		/* Vector 11: SVC call */
 	.word	tiva_dbgmonitor		/* Vector 12: Debug monitor */
 	.word	tiva_reserved		/* Vector 13: Reserved */
-	.word	tiva_pendsv			/* Vector 14: Pendable system service request */
+	.word	tiva_pendsv		/* Vector 14: Pendable system service request */
 	.word	tiva_systick		/* Vector 15: System tick */
 
 /* External Interrupts */

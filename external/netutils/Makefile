@@ -61,9 +61,6 @@ CSRCS += netlib_parsehttpurl.c
 CSRCS += netlib_setifstatus.c \
 	netlib_getifstatus.c
 
-ifeq ($(CONFIG_NET_NETMON),y)
-CSRCS += netlib_netmon.c
-endif
 
 ifeq ($(CONFIG_NET_IPv4),y)
 CSRCS += netlib_setipv4addr.c \

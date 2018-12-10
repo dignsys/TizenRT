@@ -19,9 +19,8 @@
 #ifndef __SCSC_WIFI_CM_IF_H__
 #define __SCSC_WIFI_CM_IF_H__
 
-#include <sys/types.h>
 #include <scsc/scsc_mx.h>
-
+#include <pthread.h>
 struct slsi_dev;
 
 /**

@@ -56,7 +56,6 @@
 
 #include <tinyara/config.h>
 
-#include <sys/types.h>
 #include <pthread.h>
 #include <assert.h>
 #include <debug.h>

@@ -11,16 +11,15 @@ Most of the commands support *--help* option to show how to use.
 | [exit](#exit)  | [date](#date)         | [cat](#cat)         |
 | [help](#help)  | [dmesg](#dmesg)       | [cd](#cd)           |
 | [sh](#sh)      | [free](#free)         | [df](#df)           |
-| [sleep](#sleep)| [getenv/setenv/unsetenv](#getenvsetenvunsetenv) | [echo](#echo) |
-|                | [heapinfo](#heapinfo) | [ls](#ls)               |
-|                | [irqinfo](#irqinfo)   | [mkdir](#mkdir)         |
-|                | [kill/killall](#killkillall) | [mkrd](#mkrd)    |
-|                | [ps](#ps)             | [mksmartfs](#mksmartfs) |
-|                | [reboot](#reboot)     | [mount](#mount)         |
-|                | [stkmon](#stkmon)     | [pwd](#pwd)             |
-|                | [uptime](#uptime)     | [rm](#rm)               |
-|                |                       | [rmdir](#rmdir)         |
-|                |                       | [umount](#umount)       |
+| [sleep](#sleep)| [getenv/setenv/unsetenv](#getenvsetenvunsetenv) | [ls](#ls) |
+|                | [heapinfo](#heapinfo) | [mkdir](#mkdir)     |
+|                | [irqinfo](#irqinfo)   | [mkrd](#mkrd)       |
+|                | [kill/killall](#killkillall) | [mksmartfs](#mksmartfs) |
+|                | [ps](#ps)             | [mount](#mount)     |
+|                | [reboot](#reboot)     | [pwd](#pwd)         |
+|                | [stkmon](#stkmon)     | [rm](#rm)           |
+|                | [uptime](#uptime)     | [rmdir](#rmdir)     |
+|                |                       | [umount](#umount)   |
 
 
 ## exit
@@ -52,37 +51,30 @@ unsetenv         uptime           vi               wifi
 
 
 ## cat
-This command prints the contents of an existing file to standard output or writes it to the target file.  
-
+This makes new file with content or appends content or prints content of existed file.
 ```
 Usage:
-   cat [OPTIONS] [source_file_path] [> or >>] [target_file_path]  
-   OPTIONS: `--help` - display the usage.  
+   cat < > or >> > [source path] [contents or target path]
 ```
 ```bash
-TASH>>echo -n "abc" > /mnt/test.txt
-TASH>>echo -n "123" > /mnt/test1.txt
-TASH>>ls /mnt
+TASH>>ls
 /mnt:
-test.txt
-test1.txt
-TASH>>cat /mnt/test.txt
+TASH>>cat > test.txt abc
+TASH>>cat test.txt
 abc
-TASH>>cat /mnt/test1.txt
-123
-TASH>>cat /mnt/test1.txt >> /mnt/test.txt
-TASH>>cat /mnt/test.txt
+TASH>>cat >> test.txt 123
+TASH>>cat test.txt
 abc123
 ```
 ### How to Enable
 Enable *CONFIG_FS_CMDS* on menuconfig.
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] FS shell commands
+Application Configuration -> System Libraries and Add-Ons -> FS shell commands to y
 ```
 #### Dependancy
 - Disable CONFIG_DISABLE_ENVIRON.
 ```
-Kernel Features -> Disable TinyAra interfaces -> [ ] Disable environment variable support
+Kernel Features -> Disable TinyAra interfaces -> Disable environment variable support to n
 ```
 - Set a value which is greater than zero on CONFIG_NFILE_DESCRIPTORS.
 ```
@@ -113,12 +105,12 @@ TASH>>ls
 ### How to Enable
 Enable *CONFIG_FS_CMDS* on menuconfig.
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] FS shell commands
+Application Configuration -> System Libraries and Add-Ons -> FS shell commands to y
 ```
 #### Dependancy
 - Disable CONFIG_DISABLE_ENVIRON.
 ```
-Kernel Features -> Disable TinyAra interfaces -> [ ] Disable environment variable support
+Kernel Features -> Disable TinyAra interfaces -> Disable environment variable support to n
 ```
 - Set a value which is greater than zero on CONFIG_NFILE_DESCRIPTORS.
 ```
@@ -151,12 +143,12 @@ Feb 27 14:41:06 2018
 ### How to Enable
 Enable *CONFIG_ENABLE_DATE* to use this command on menuconfig as shown below:
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] Kernel shell commands -> [*] date
+Application Configuration -> System Libraries and Add-Ons -> date to y
 ```
 
 
 ## df
-This shows information about the File System on which each FILE resides, or all File Systems by default.
+This shows information about the file system on which each FILE resides, or all file systems by default.
 ```bash
 TASH>>df -h
 Filesystem    Size      Used  Available Mounted on
@@ -176,12 +168,12 @@ TASH>>df
 ### How to Enable
 Enable *CONFIG_FS_CMDS* on menuconfig.
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] FS shell commands
+Application Configuration -> System Libraries and Add-Ons -> FS shell commands to y
 ```
 #### Dependancy
 - Disable CONFIG_DISABLE_MOUNTPOINT.
 ```
-File Systems -> [ ] Disable support for mount points
+File Systems -> Disable support for mount points to n
 ```
 - Set a value which is greater than zero on CONFIG_NFILE_DESCRIPTORS.
 ```
@@ -206,54 +198,17 @@ i2c_uioregister: Registering /dev/i2c-1
 ### How to Enable
 Enable *CONFIG_ENABLE_DMESG* to use this command on menuconfig as shown below:
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] Kernel shell commands -> [*] dmesg
+Application Configuration -> System Libraries and Add-Ons -> dmesg to y
 ```
 #### Dependency
 - Enable CONFIG_SYSLOG.
 ```
-File System -> [*] Advanced SYSLOG features
+File System -> Advanced SYSLOG features to y
 ```
 - Enable CONFIG_RAMLOG_SYSLOG.
 ```
-Device Drivers -> [*] RAM log device support
+Device Drivers -> RAM log device support to y
 ```
-
-## echo
-This command prints the 'input_text' contents to standard output or writes/appends it to target file.  
-
-```
-Usage:
-   echo [OPTIONS] [input_text] [> or >>] [target_file_path]  
-   OPTIONS: `-n` - do not output the trailing newline.  
-            `--help` - displays usage.  
-```
-```bash
-TASH>>ls /mnt
-/mnt:
-TASH>>echo "abc" > /mnt/test.txt
-TASH>>cat /mnt/test.txt
-abc
-
-TASH>>echo -n "abc" > /mnt/test.txt
-TASH>>cat /mnt/test.txt
-abc
-TASH>>echo -n "123" >> /mnt/test.txt
-TASH>>cat /mnt/test.txt
-abc123
-```
-### How to Enable
-Enable *CONFIG_FS_CMDS* on menuconfig.
-```
-Application Configuration -> System Libraries and Add-Ons -> [*] FS shell commands
-```
-#### Dependancy
-- Disable CONFIG_DISABLE_ENVIRON.
-```
-Kernel Features -> Disable TinyAra interfaces -> [ ] Disable environment variable support
-```
-- Set a value which is greater than zero on CONFIG_NFILE_DESCRIPTORS.
-```
-Kernel Features -> Files and I/O -> Maximum number of file descriptors per task
 
 
 ## free
@@ -266,13 +221,13 @@ Data:        959312      44144     915168     909296
 ### How to Enable
 Enable *CONFIG_ENABLE_FREE* to use this command on menuconfig as shown below:
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] Kernel shell commands -> [*] free
+Application Configuration -> System Libraries and Add-Ons -> free to y
 ```
 
 
 ## getenv/setenv/unsetenv
 These commands are related with setting or getting the environment variables.  
-The **getenv** prints all of environment variables. If specific environment name is given, this prints the value of given environment.   
+The **getenv** prints all of environment variables. If specific environment name is given, this prints the value of given envionment.   
 The **setenv** save new environment variable with given value.  
 The **unsetenv** unsets environment variable with NAME.
 ```bash
@@ -311,12 +266,12 @@ GET is failed, err (2)
 ### How to Enable
 Enable *CONFIG_ENABLE_ENV_GET/SET/UNSET* to use this command on menuconfig as shown below:
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] Kernel shell commands -> [*] env get / [*] env set / [*]env unset
+Application Configuration -> System Libraries and Add-Ons -> env get/env set/env unset to y
 ```
 #### Dependency
 Disable CONFIG_DISABLE_ENVIRON.
 ```
-Kernel Features -> Disable TinyAra interfaces -> [ ] Disable environment variable support
+Kernel Features -> Disable TinyAra interfaces -> Disable environment variable support to n
 ```
 
 
@@ -381,13 +336,13 @@ PID |  PPID | STACK | CURR_HEAP | PEAK_HEAP | NAME
 ### How to Enable
 Enable *CONFIG_ENABLE_HEAPINFO* to use this command on menuconfig as shown below:
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] Kernel shell commands -> [*] heapinfo
+Application Configuration -> System Libraries and Add-Ons -> heapinfo to y
 ```
 
 #### Dependency
 Enable CONFIG_DEBUG_MM_HEAPINFO.
 ```
-Debug options -> [*] Enable Debug Output Features
+Debug options -> Enable Debug Output Features to y
 ```
 
 ### Heapinfo for User defined Group
@@ -395,7 +350,7 @@ With specified task/thread name, heapinfo can show User defined group heap memor
 
 Enable *CONFIG_HEAPINFO_GROUP* to use this option.
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] Kernel shell commands -> [*] heapinfo -> [*] Enable User defined Group Memory Usage -> set Thread Name List for measuring Alloc size
+Application Configuration -> System Libraries and Add-Ons -> heapinfo -> Enable User defined Group Memory Usage -> set Thread Name List for measuring Alloc size
 ```
 
 - Thread Name List for measuring Alloc size can be set like below:  
@@ -429,16 +384,16 @@ TASH>>irqinfo
 ### How to Enable
 Enable *CONFIG_ENABLE_HEAPINFO* to use this command on menuconfig as shown below:
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] Kernel shell commands -> [*] irqinfo
+Application Configuration -> System Libraries and Add-Ons -> irqinfo to y
 ```
 #### Dependency
 - Enable CONFIG_DEBUG.
 ```
-Debug Options -> [*] Enable Debug Output Features
+Debug Options -> Enable Debug Output Features to y
 ```
 - Enable CONFIG_DEBUG_IRQ_INFO.
 ```
-Debug Options -> Enable Debug Output Features -> [*] Interrupt Debug information
+Debug Options -> Enable Debug Output Features -> Interrupt Debug information to y
 ```
 
 
@@ -472,12 +427,12 @@ Options:
 ### How to Enable
 Enable *CONFIG_ENABLE_KILL/KILLALL* to use this command on menuconfig as shown below:
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] Kernel shell commands -> [*] kill/killall
+Application Configuration -> System Libraries and Add-Ons -> kill/killall to y
 ```
 #### Dependency
 - Disable CONFIG_DISABLE_SIGNALS.
 ```
-Kernel Features -> Disable TinyAra interfaces -> [ ] Disable signal support
+Kernel Features -> Disable TinyAra interfaces -> Disable signal support to n
 ```
 - The *CONFIG_TASK_NAME_SIZE* should be greater than 0 to use killall.
 ```
@@ -503,12 +458,12 @@ TASH>>ls
 ### How to Enable
 Enable *CONFIG_FS_CMDS* on menuconfig.
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] FS shell commands
+Application Configuration -> System Libraries and Add-Ons -> FS shell commands to y
 ```
 #### Dependancy
 - Disable CONFIG_DISABLE_ENVIRON.
 ```
-Kernel Features -> Disable TinyAra interfaces -> [ ] Disable environment variable support
+Kernel Features -> Disable TinyAra interfaces -> Disable environment variable support to n
 ```
 - Set a value which is greater than zero on CONFIG_NFILE_DESCRIPTORS.
 ```
@@ -533,12 +488,12 @@ TASH>>ls
 ### How to Enable
 Enable *CONFIG_FS_CMDS* on menuconfig.
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] FS shell commands
+Application Configuration -> System Libraries and Add-Ons -> FS shell commands to y
 ```
 #### Dependancy
 - Disable CONFIG_DISABLE_ENVIRON.
 ```
-Kernel Features -> Disable TinyAra interfaces -> [ ] Disable environment variable support
+Kernel Features -> Disable TinyAra interfaces -> Disable environment variable support to n
 ```
 - Set a value which is greater than zero on CONFIG_NFILE_DESCRIPTORS.
 ```
@@ -555,16 +510,16 @@ Usage:
 ### How to Enable
 Enable *CONFIG_FS_CMDS* on menuconfig.
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] FS shell commands
+Application Configuration -> System Libraries and Add-Ons -> FS shell commands to y
 ```
 #### Dependancy
 - Disable CONFIG_DISABLE_MOUNTPOINT.
 ```
-File Systems -> [ ] Disable support for mount points
+File Systems -> Disable support for mount points to n
 ```
 - Disable CONFIG_DISABLE_ENVIRON.
 ```
-Kernel Features -> Disable TinyAra interfaces -> [ ] Disable environment variable support
+Kernel Features -> Disable TinyAra interfaces -> Disable environment variable support to n
 ```
 - Set a value which is greater than zero on CONFIG_NFILE_DESCRIPTORS.
 ```
@@ -573,7 +528,7 @@ Kernel Features -> Files and I/O -> Maximum number of file descriptors per task
 
 
 ## mksmartfs
-This makes SmartFS File System on the specified block device.
+This makes SmartFS file system on the specified block device.
 ```
 Usage:
    mksmartfs <source directory> [-f] <target directory>
@@ -581,16 +536,16 @@ Usage:
 ### How to Enable
 Enable *CONFIG_FS_CMDS* on menuconfig.
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] FS shell commands
+Application Configuration -> System Libraries and Add-Ons -> FS shell commands to y
 ```
 #### Dependancy
 - Disable CONFIG_DISABLE_MOUNTPOINT.
 ```
-File Systems -> [ ] Disable support for mount points
+File Systems -> Disable support for mount points to n
 ```
 - Enable CONFIG_FS_SMARTFS.
 ```
-File Systems -> [*] SMART File System
+File Systems -> SMART file system to y
 ```
 - Set a value which is greater than zero on CONFIG_NFILE_DESCRIPTORS.
 ```
@@ -599,7 +554,7 @@ Kernel Features -> Files and I/O -> Maximum number of file descriptors per task
 
 
 ## mount
-This mounts specific File System.
+This mounts specific file system.
 ```
 Usage:
    mount -t <filesystem name> <source directory> <target directory>
@@ -607,16 +562,16 @@ Usage:
 ### How to Enable
 Enable *CONFIG_FS_CMDS* on menuconfig.
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] FS shell commands
+Application Configuration -> System Libraries and Add-Ons -> FS shell commands to y
 ```
 #### Dependancy
 - Disable CONFIG_DISABLE_MOUNTPOINT.
 ```
-File Systems -> [ ] Disable support for mount points
+File Systems -> Disable support for mount points to n
 ```
 - Disable CONFIG_DISABLE_ENVIRON.
 ```
-Kernel Features -> Disable TinyAra interfaces -> [ ] Disable environment variable support
+Kernel Features -> Disable TinyAra interfaces -> Disable environment variable support to n
 ```
 - Set a value which is greater than zero on CONFIG_NFILE_DESCRIPTORS.
 ```
@@ -644,7 +599,7 @@ TASH>>ps
 ### How to Enable
 Enable *CONFIG_ENABLE_PS* to use this command on menuconfig as shown below:
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] Kernel shell commands -> [*] ps
+Application Configuration -> System Libraries and Add-Ons -> ps to y
 ```
 
 
@@ -657,12 +612,12 @@ TASH>>pwd
 ### How to Enable
 Enable *CONFIG_FS_CMDS* on menuconfig.
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] FS shell commands
+Application Configuration -> System Libraries and Add-Ons -> FS shell commands to y
 ```
 #### Dependancy
 - Disable CONFIG_DISABLE_ENVIRON.
 ```
-Kernel Features -> Disable TinyAra interfaces -> [ ] Disable environment variable support
+Kernel Features -> Disable TinyAra interfaces -> Disable environment variable support to n
 ```
 - Set a value which is greater than zero on CONFIG_NFILE_DESCRIPTORS.
 ```
@@ -699,7 +654,7 @@ TASH>>
 ### How to Enable
 Enable *CONFIG_BOARDCTL_RESET* on menuconfig.
 ```
-Hardware Configuration -> Board Selection -> [*] Enable boardctl() interface -> [*] Enable reset interface
+Hardware Configuration -> Board Selection -> Enable boardctl() interface to y -> Enable reset interface to y
 ```
 
 
@@ -720,12 +675,12 @@ TASH>>ls
 ### How to Enable
 Enable *CONFIG_FS_CMDS* on menuconfig.
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] FS shell commands
+Application Configuration -> System Libraries and Add-Ons -> FS shell commands to y
 ```
 #### Dependancy
 - Disable CONFIG_DISABLE_ENVIRON.
 ```
-Kernel Features -> Disable TinyAra interfaces -> [ ] Disable environment variable support
+Kernel Features -> Disable TinyAra interfaces -> Disable environment variable support to n
 ```
 - Set a value which is greater than zero on CONFIG_NFILE_DESCRIPTORS.
 ```
@@ -750,12 +705,12 @@ TASH>>ls
 ### How to Enable
 Enable *CONFIG_FS_CMDS* on menuconfig.
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] FS shell commands
+Application Configuration -> System Libraries and Add-Ons -> FS shell commands to y
 ```
 #### Dependancy
 - Disable CONFIG_DISABLE_ENVIRON.
 ```
-Kernel Features -> Disable TinyAra interfaces -> [ ] Disable environment variable support
+Kernel Features -> Disable TinyAra interfaces -> Disable environment variable support to n
 ```
 - Set a value which is greater than zero on CONFIG_NFILE_DESCRIPTORS.
 ```
@@ -793,7 +748,7 @@ Hello, World!!
 ### How to Enable
 Enable *CONFIG_TASH_SCRIPT* to use this command on menuconfig as shown below:
 ```
-Application Configuration -> Shell -> [*] Enable shell -> [*] enable shell script
+Application Configuration -> Shell -> enable shell script to y
 ```
 
 
@@ -802,7 +757,7 @@ This command supports sleeping of shell. This has an argument which shows sleepi
 #### Dependency
 Disable CONFIG_DISABLE_SIGNALS.
 ```
-Kernel Features -> Disable TinyAra interfaces -> [ ] Disable signal support
+Kernel Features -> Disable TinyAra interfaces -> Disable signal support to n
 ```
 
 
@@ -842,18 +797,18 @@ TASH>>Stack Monitor: Stopped well
 ### How to Enable
 Enable *CONFIG_ENABLE_STACKMONITOR* to use this command on menuconfig as shown below:
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] Kernel shell commands -> [*] Stack monitor
+Application Configuration -> System Libraries and Add-Ons -> Stack monitor to y
 ```
 
 #### Dependency
 Enable CONFIG_STACK_COLORATION.
 ```
-Debug Options -> [*] Stack coloration
+Debug Options -> Stack coloration to y
 ```
 
 
 ## umount
-This unmounts specific File System.
+This unmounts specific file system.
 ```
 Usage:
    umount <mounted directory>
@@ -861,16 +816,16 @@ Usage:
 ### How to Enable
 Enable *CONFIG_FS_CMDS* on menuconfig.
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] FS shell commands
+Application Configuration -> System Libraries and Add-Ons -> FS shell commands to y
 ```
 #### Dependancy
 - Disable CONFIG_DISABLE_MOUNTPOINT.
 ```
-File Systems -> [ ] Disable support for mount points
+File Systems -> Disable support for mount points to n
 ```
 - Disable CONFIG_DISABLE_ENVIRON.
 ```
-Kernel Features -> Disable TinyAra interfaces -> [ ] Disable environment variable support
+Kernel Features -> Disable TinyAra interfaces -> Disable environment variable support to n
 ```
 - Set a value which is greater than zero on CONFIG_NFILE_DESCRIPTORS.
 ```
@@ -887,5 +842,5 @@ Uptime : 1502.82
 ### How to Enable
 Enable *CONFIG_ENABLE_STACKMONITOR* to use this command on menuconfig as shown below:
 ```
-Application Configuration -> System Libraries and Add-Ons -> [*] Kernel shell commands -> [*] uptime
+Application Configuration -> System Libraries and Add-Ons -> uptime to y
 ``` 
