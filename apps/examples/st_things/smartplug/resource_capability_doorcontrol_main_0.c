@@ -17,6 +17,8 @@
 #include <sys/boardctl.h>
 #endif
 
+#ifdef CONFIG_EXAMPLES_ST_THINGS_SMARTPLUG_SUPPORT_OTA
+
 #define DEBUG_OTA
 //#define DEBUG_OTA_DUMP
 #define OTA_VERIFY
@@ -656,3 +658,4 @@ bool handle_set_request_on_resource_capability_doorcontrol_main_0(st_things_set_
 	}
     return true;
 }
+#endif

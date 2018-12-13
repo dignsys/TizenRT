@@ -1,0 +1,205 @@
+{
+  "device": [
+    {
+      "specification": {
+        "device": {
+          "deviceType": "x.wwst.d.basic",
+          "deviceName": "jSmartPlug",
+          "specVersion": "core.1.1.0",
+          "dataModelVersion": "res.1.1.0"
+        },
+        "platform": {
+          "manufacturerName": "fDqF",
+          "manufacturerUrl": "http://www.samsung.com/sec/",
+          "manufacturingDate": "2017-11-29",
+          "modelNumber": "NWSP-01",
+          "platformVersion": "1.0",
+          "osVersion": "1.0",
+          "hardwareVersion": "1.0",
+          "firmwareVersion": "1.0",
+          "vendorId": "JSMARTPLUG008"
+        }
+      },
+      "resources": {
+        "single": [
+          {
+            "uri": "/capability/switch/main/0",
+            "types": [
+              "x.com.st.powerswitch"
+            ],
+            "interfaces": [
+              "oic.if.a",
+              "oic.if.baseline"
+            ],
+            "policy": 3
+          },
+          {
+            "uri": "/capability/powerMeter/main/0",
+            "types": [
+              "x.com.st.powermeter"
+            ],
+            "interfaces": [
+              "oic.if.baseline",
+              "oic.if.s"
+            ],
+            "policy": 3
+          },
+          {
+            "uri": "/capability/energyMeter/main/0",
+            "types": [
+              "x.com.st.energymeter"
+            ],
+            "interfaces": [
+              "oic.if.baseline",
+              "oic.if.s"
+            ],
+            "policy": 3
+          },
+          {
+            "uri": "/capability/dustSensor/main/0",
+            "types": [
+              "x.com.st.dustlevel"
+            ],
+            "interfaces": [
+              "oic.if.s",
+              "oic.if.baseline"
+            ],
+            "policy": 3
+          },
+          {
+            "uri": "/capability/colorControl/main/0",
+            "types": [
+              "oic.r.colour.chroma"
+            ],
+            "interfaces": [
+              "oic.if.a",
+              "oic.if.baseline"
+            ],
+            "policy": 3
+          }
+        ]
+      }
+    }
+  ],
+  "resourceTypes": [
+    {
+      "type": "x.com.st.powerswitch",
+      "properties": [
+        {
+          "key": "power",
+          "type": 3,
+          "mandatory": true,
+          "rw": 3
+        }
+      ]
+    },
+    {
+      "type": "x.com.st.powermeter",
+      "properties": [
+        {
+          "key": "unit",
+          "type": 3,
+          "mandatory": true,
+          "rw": 1
+        },
+        {
+          "key": "power",
+          "type": 2,
+          "mandatory": true,
+          "rw": 1
+        }
+      ]
+    },
+    {
+      "type": "x.com.st.energymeter",
+      "properties": [
+        {
+          "key": "unit",
+          "type": 3,
+          "mandatory": true,
+          "rw": 1
+        },
+        {
+          "key": "energy",
+          "type": 2,
+          "mandatory": true,
+          "rw": 1
+        }
+      ]
+    },
+    {
+      "type": "x.com.st.dustlevel",
+      "properties": [
+        {
+          "key": "dustLevel",
+          "type": 2,
+          "mandatory": true,
+          "rw": 1
+        },
+        {
+          "key": "fineDustLevel",
+          "type": 2,
+          "mandatory": true,
+          "rw": 1
+        }
+      ]
+    },
+    {
+      "type": "oic.r.colour.chroma",
+      "properties": [
+        {
+          "key": "saturation",
+          "type": 1,
+          "mandatory": true,
+          "rw": 3
+        },
+        {
+          "key": "ct",
+          "type": 1,
+          "mandatory": true,
+          "rw": 3
+        },
+        {
+          "key": "csc",
+          "type": 7,
+          "mandatory": true,
+          "rw": 3
+        },
+        {
+          "key": "maximumsaturation",
+          "type": 1,
+          "mandatory": false,
+          "rw": 3
+        },
+        {
+          "key": "hue",
+          "type": 2,
+          "mandatory": true,
+          "rw": 3
+        }
+      ]
+    }
+  ],
+  "configuration": {
+    "easySetup": {
+      "connectivity": {
+        "type": 1,
+        "softAP": {
+          "setupId": "008",
+          "artik": false
+        }
+      },
+      "ownershipTransferMethod": 2
+    },
+    "wifi": {
+      "interfaces": 15,
+      "frequency": 1
+    },
+    "filePath": {
+      "svrdb": "artikserversecured.dat",
+      "provisioning": "provisioning.dat",
+      "certificate": "certificate.pem",
+      "privateKey": "privatekey.der"
+    }
+  }
+}

@@ -1,37 +1,21 @@
-# nettest
-This can be used to test network functionality.
+# st_things
+ This can be used to test Smart Things Things SDK functionality.
 
 ## Enabled Feature
-### Application
-DNS Client  
-MDNS  
-NTP Client  
-SLSIWIFI  
-Wifi Test
+### File system
+  MTD, ProcFS, ROMFS, SmartFS
+
+### IoTivity
 
 ### Kernel
-GPIO, I2C, PWM, UART, RTC, SFLASH, SPI  
-SSS  
-Automount of USERFS  
-POSIX APIs  
-Round Robin Scheduling  
-Signal  
-Work Queue (High Priority and Low Priority)
-
-### File system
-Smart FS  
-Proc FS  
-MTD
+  GPIO, I2C, PWM, RTC, SPI, UART, Watchdog  
+  Debug  
+  POSIX APIs  
+  Workqueue
 
 ### Network
-ARP, Dhcp, Ethernet, ICMP, IGMP, Ipv4, Json, Lwip, MDNS, NTP client, TCP, Telnet, TLS, UDP  
-WiFi, Wpa_supplicant  
-cJson, NETDB Interface
+  ARP, Dhcp, Ethernet, ICMP, IGMP, Ipv4, Lwip, TCP, Telnet, TLS, UDP, WIFI, Wpa_supplicant
 
-### Framework
-Device Management with Wakaama
+### ST_Things
 
-### ETC
-Debug Message  
-TASH  
-Date, env, free, heapinfo, kill, ps, stack monitor, uptime, ramtest
+### TASH

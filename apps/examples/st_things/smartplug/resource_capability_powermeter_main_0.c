@@ -15,6 +15,7 @@
 #include <tinyara/analog/ioctl.h>
 
 //#define	DEBUG_POWER
+//#define	DEBUG_ADC_INPUT
 
 void update_power_value(void);
 extern void update_energy_value(void);
@@ -33,6 +34,13 @@ static int g_prev_day = -1;
 static int g_prev_hour = -1;
 
 #define ADC_MAX_SAMPLES	4
+#ifdef CONFIG_ARCH_CHIP_STM32L4				
+#define	PLUG0_CHANNEL	3
+#define	PLUG1_CHANNEL	4
+#else
+#define	PLUG0_CHANNEL	0
+#define	PLUG1_CHANNEL	1
+#endif
 
 static char saved_url[1024] = {0,};
 
@@ -151,11 +159,13 @@ void power_meter_adc_test(void)
 			if (nsamples * sizeof(struct adc_msg_s) != nbytes) {
 				printf("%s: read size=%ld is not a multiple of sample size=%d, Ignoring\n", __func__, (long)nbytes, sizeof(struct adc_msg_s));
 			} else {
-//				printf("Sample:\n");
+#ifdef	DEBUG_ADC_INPUT
+				printf("Sample:\n");
+#endif
 				int i;
 				for (i = 0; i < nsamples; i++) {
-					if(samples[i].am_channel == 0 
-						|| (samples[i].am_channel == 1 && samples[i].am_data >= 100)) {	//100 ������ ��쿡�� ����ȵ� ������ ������
+					if(samples[i].am_channel == PLUG0_CHANNEL 
+						|| (samples[i].am_channel == PLUG0_CHANNEL && samples[i].am_data >= 100)) {	//100
 						sample_count++;
 						sample_volts += samples[i].am_data;
 						if(sample_count == 5) {
@@ -165,7 +175,9 @@ void power_meter_adc_test(void)
 							sample_volts = 0;
 						}
 					}
-					//printf("%d: channel: %d, value: %d, nbytes=%d\n", i + 1, samples[i].am_channel, samples[i].am_data, nbytes);
+#ifdef	DEBUG_ADC_INPUT
+					printf("%d: channel: %d, value: %d, nbytes=%d\n", i + 1, samples[i].am_channel, samples[i].am_data, nbytes);
+#endif
 				}
 			}
 		}

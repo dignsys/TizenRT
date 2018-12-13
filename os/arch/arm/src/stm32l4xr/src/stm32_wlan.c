@@ -118,6 +118,8 @@ int bring_up_wpa_supplicant(void)
 
 	pthread_setname_np(pthread_handle, "WPA_SUPPLICANT");
 
+	/* Wait for the threads to stop */
+	pthread_join(pthread_handle, NULL);
 	return 0;
 
 error_exit:

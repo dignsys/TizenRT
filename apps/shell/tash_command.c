@@ -106,7 +106,7 @@ const static tash_cmdlist_t tash_basic_cmds[] = {
 	{"sh",    tash_script, TASH_EXECMD_SYNC},
 #endif
 #ifdef CONFIG_BRCM_WLAN
-	{"wifion",  bring_up_cyw43438,   TASH_EXECMD_SYNC},
+	{"wifion",  bring_up_cyw43438,   TASH_EXECMD_ASYNC},
 #endif
 #ifndef CONFIG_DISABLE_SIGNALS
 	{"sleep", tash_sleep,  TASH_EXECMD_SYNC},

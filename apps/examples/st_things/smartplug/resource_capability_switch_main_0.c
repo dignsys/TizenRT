@@ -9,6 +9,10 @@
 #include <stdbool.h>
 #include "st_things/st_things.h"
 
+#include <tinyara/gpio.h>
+#include <iotbus/iotbus_gpio.h>
+#include <iotbus/iotbus_error.h>
+
 //#define	DEBUG_SWITCH
 
 static const char* PROP_POWER = "power";
@@ -17,6 +21,45 @@ static char saved_url[1024] = {0,};
 #include <fcntl.h>
 #include <tinyara/gpio.h>
 
+#ifdef CONFIG_ARCH_CHIP_STM32L4
+#define AC_LOAD_SW1	36
+#define AC_LOAD_SW2	37
+
+static iotbus_gpio_context_h ac_sw1;
+static iotbus_gpio_context_h ac_sw2;
+
+static void gpio_ac_power_stop(void)
+{
+	iotbus_gpio_close(ac_sw1);
+	iotbus_gpio_close(ac_sw2);
+}
+
+static void gpio_ac_power_on(void)
+{
+	iotbus_gpio_write(ac_sw1, 1);
+	iotbus_gpio_write(ac_sw2, 1);
+}
+
+static void gpio_ac_power_off(void)
+{
+	iotbus_gpio_write(ac_sw1, 0);
+	iotbus_gpio_write(ac_sw2, 0);
+}
+
+static int gpio_ac_power_start(void)
+{
+	iotapi_initialize();
+	ac_sw1 = iotbus_gpio_open(AC_LOAD_SW1);
+	iotbus_gpio_set_direction(ac_sw1, GPIO_DIRECTION_OUT);
+	ac_sw2 = iotbus_gpio_open(AC_LOAD_SW2);
+	iotbus_gpio_set_direction(ac_sw2, GPIO_DIRECTION_OUT);
+	up_mdelay(10);
+//	gpio_ac_power_off();
+	return iotbus_gpio_read(ac_sw1);
+}
+#else
+#define LED_POWER_PORT 50//=XGPIO21		(POWER GPIO) //49//BLUE LED
+#define LED_POWER_PORT2 48//=XGPIO19	(POWER GPIO)
 static int gpio_read(int port)
 {
 	char buf[4];
@@ -56,9 +99,7 @@ static void gpio_write(int port, int value)
 	}
 	close(fd);
 }
-
-#define LED_POWER_PORT 50//=XGPIO21		(POWER GPIO) //49//BLUE LED
-#define LED_POWER_PORT2 48//=XGPIO19	(POWER GPIO)
+#endif
 
 static int g_power = 0;
 char *power_status[] = {"off", "on"};
@@ -78,17 +119,27 @@ int set_led_power(char *power)
 		printf("input Error");
 		return -1;
 	}
+	#ifdef CONFIG_ARCH_CHIP_STM32L4
+	if(g_power)
+		gpio_ac_power_on();
+	else
+		gpio_ac_power_off();
+	#else
 	gpio_write(LED_POWER_PORT, g_power);
 	usleep(300 * 1000);
 	gpio_write(LED_POWER_PORT2, g_power);
-
+	#endif
 	return g_power;
 }
 
 void switch_power_gpio_init(void)
 {
+#ifdef CONFIG_ARCH_CHIP_STM32L4
+	g_power = gpio_ac_power_start();
+#else
 	g_power = gpio_read(LED_POWER_PORT);
 //	g_power = gpio_read(LED_POWER_PORT2);
+#endif
 }
 
 void power_onoff(int onoff)
