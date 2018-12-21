@@ -95,9 +95,15 @@
  *
  ************************************************************************/
 
-int umm_trysemaphore(void)
+int umm_trysemaphore(void *address)
 {
-	return mm_trysemaphore(USR_HEAP);
+#if CONFIG_MM_NHEAPS > 0
+	struct mm_heap_s *heap;
+	heap = mm_get_heap(address);
+	return mm_trysemaphore(heap);
+#else
+	return mm_trysemaphore(BASE_HEAP);
+#endif
 }
 
 /************************************************************************
@@ -116,9 +122,15 @@ int umm_trysemaphore(void)
  *
  ************************************************************************/
 
-void umm_givesemaphore(void)
+void umm_givesemaphore(void *address)
 {
-	mm_givesemaphore(USR_HEAP);
+#if CONFIG_MM_NHEAPS > 0
+	struct mm_heap_s *heap;
+	heap = mm_get_heap(address);
+	mm_givesemaphore(heap);
+#else
+	mm_givesemaphore(BASE_HEAP);
+#endif
 }
 
 #endif							/* !CONFIG_BUILD_PROTECTED || !__KERNEL__ */

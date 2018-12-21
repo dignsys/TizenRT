@@ -90,7 +90,7 @@
 #include <net/lwip/opt.h>
 #include <net/lwip/netif.h>
 #include <net/lwip/tcpip.h>
-#include <net/lwip/ip.h>
+#include <net/lwip/ipv4/ip.h>
 #define net_driver_s netif
 #endif
 
@@ -719,8 +719,8 @@ static void enc_wrbreg(FAR struct enc_driver_s *priv, uint8_t ctrlreg, uint8_t w
 
 static int enc_waitbreg(FAR struct enc_driver_s *priv, uint8_t ctrlreg, uint8_t bits, uint8_t value)
 {
-	systime_t start = clock_systimer();
-	systime_t elapsed;
+	clock_t start = clock_systimer();
+	clock_t elapsed;
 	uint8_t rddata;
 
 	/* Loop until the exit condition is met */
@@ -2451,9 +2451,9 @@ static int enc_reset(FAR struct enc_driver_s *priv)
 
 int enc_initialize(FAR struct spi_dev_s *spi, FAR const struct enc_lower_s *lower, unsigned int devno)
 {
-	struct ip4_addr ipaddr;
-	struct ip4_addr netmask;
-	struct ip4_addr gw;
+	struct ip_addr ipaddr;
+	struct ip_addr netmask;
+	struct ip_addr gw;
 	FAR struct enc_driver_s *priv;
 
 	DEBUGASSERT(devno < CONFIG_ENC28J60_NINTERFACES);

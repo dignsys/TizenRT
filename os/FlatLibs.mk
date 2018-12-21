@@ -108,16 +108,6 @@ TINYARALIBS += $(LIBRARIES_DIR)$(DELIM)libresource_directory$(LIBEXT)
 endif
 endif
 
-# Add libraries for iotivity constrained support
-ifeq ($(CONFIG_ENABLE_IOTIVITY_CONSTRAINED),y)
-ifeq ($(CONFIG_IOTIVITY_CONSTRAINED_SERVER),y)
-TINYARALIBS += $(LIBRARIES_DIR)$(DELIM)libiotivity-constrained-server$(LIBEXT)
-endif
-ifeq ($(CONFIG_IOTIVITY_CONSTRAINED_CLIENT),y)
-TINYARALIBS += $(LIBRARIES_DIR)$(DELIM)libiotivity-constrained-client$(LIBEXT)
-endif
-endif
-
 # Add libraries for power management module
 
 ifeq ($(CONFIG_PM),y)
@@ -147,6 +137,12 @@ endif
 
 ifeq ($(CONFIG_AUDIO),y)
 TINYARALIBS += $(LIBRARIES_DIR)$(DELIM)libaudio$(LIBEXT)
+endif
+
+# Add libraries for the Crypto sub-system
+
+ifeq ($(CONFIG_CRYPTO),y)
+TINYARALIBS += $(LIBRARIES_DIR)$(DELIM)libcrypto$(LIBEXT)
 endif
 
 # Add library for Framework

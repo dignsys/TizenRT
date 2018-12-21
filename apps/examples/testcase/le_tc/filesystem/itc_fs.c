@@ -39,9 +39,10 @@
 #ifdef CONFIG_FS_SMARTFS
 #if defined(CONFIG_SIDK_S5JT200_AUTOMOUNT_USERFS)
 #define TMP_MOUNT_DEV_DIR CONFIG_SIDK_S5JT200_AUTOMOUNT_USERFS_DEVNAME
-
 #elif defined(CONFIG_ARTIK05X_AUTOMOUNT_USERFS)
 #define TMP_MOUNT_DEV_DIR CONFIG_ARTIK05X_AUTOMOUNT_USERFS_DEVNAME
+#elif defined(CONFIG_ARCH_BOARD_LM3S6965EK)
+#define TMP_MOUNT_DEV_DIR "/dev/smart0p0"
 #else
 #define TMP_MOUNT_DEV_DIR "/dev/smart1"
 #endif
@@ -1147,6 +1148,7 @@ static void itc_libc_stdio_fseek_n(void)
 	TC_SUCCESS_RESULT();
 }
 
+#if 0
 /**
 * @testcase         itc_libc_stdio_fseek_n_invalid_fp
 * @brief            Move file position to specific position
@@ -1172,6 +1174,7 @@ static void itc_libc_stdio_fseek_n_invalid_fp(void)
 
 	TC_SUCCESS_RESULT();
 }
+#endif
 
 /**
 * @testcase         itc_libc_stdio_ftell_n
@@ -1209,8 +1212,9 @@ static void itc_libc_stdio_fseek_ftell_p(void)
 {
 	FILE *fp;
 	char *filename = VFS_FILE_PATH;
-	char *write_buf;
+	char write_buf[BUFFER_LEN];
 	char read_buf[BUFFER_LEN];
+	int null_index = 15;
 
 	fp = fopen(filename, "w+");
 	TC_ASSERT_NEQ("fopen", fp, NULL);
@@ -1218,8 +1222,9 @@ static void itc_libc_stdio_fseek_ftell_p(void)
 	TC_ASSERT_EQ_CLEANUP("fseek", fseek(fp, 0, SEEK_SET), OK, fclose(fp));
 	TC_ASSERT_EQ_CLEANUP("ftell", ftell(fp), (long)0, fclose(fp));
 
-	write_buf = VFS_TEST_CONTENTS_1;
-	write_buf[15] = '\0';
+	strncpy(write_buf, VFS_TEST_CONTENTS_1, strlen(VFS_TEST_CONTENTS_1));
+
+	write_buf[null_index] = '\0';
 	TC_ASSERT_NEQ_CLEANUP("fputs", fputs(write_buf, fp), EOF, fclose(fp));
 
 	TC_ASSERT_EQ_CLEANUP("fseek", fseek(fp, 0, SEEK_CUR), OK, fclose(fp));

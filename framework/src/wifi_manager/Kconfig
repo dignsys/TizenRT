@@ -19,7 +19,7 @@ choice
 config SELECT_WPA_SUPPLICANT
 	bool "select wpa_supplicant"
 	select WPA_SUPPLICANT
-#	select NETUTILS_WIFI
+	select NETUTILS_WIFI
 
 	---help---
 		Select the wpa_supplicant
@@ -77,6 +77,21 @@ config WIFIMGR_SOFTAP_IFNAME
 config WIFIMGR_STA_IFNAME
 	string "interface name of station mode"
 	default "wl1"
+
+config WIFIMGR_DISABLE_AUTO_GET_IP
+	bool "disable auto get ip (ipv4 dhcp)"
+	default n
+
+config DISABLE_EXTERNAL_AUTOCONNECT
+	bool "disable external autoconnect"
+	default n
+
+if DISABLE_EXTERNAL_AUTOCONNECT
+config WIFIMGR_INTERNAL_AUTOCONNECT
+	bool "enable internal auto(re)connect"
+	default y
+
+endif #WIFIMGR_DISABLE_EXTERNAL_AUTOCONNECT
 
 endif #WIFI_MANAGER
 

@@ -236,9 +236,9 @@ typedef struct
   * @{
   */
 #define FLASH_BASE            (0x08000000UL) /*!< FLASH(up to 2 MB) base address */
-#define SRAM1_BASE            (0x20000000UL) /*!< SRAM1(up to 192 KB) base address */
-#define SRAM2_BASE            (0x10000000UL) /*!< SRAM2(64 KB) base address */
-#define SRAM3_BASE            (0x20040000UL) /*!< SRAM3(384 KB) base address */
+//#define SRAM1_BASE            (0x20040000UL) /*!< SRAM1(up to 384 KB) base address */
+//#define SRAM2_BASE            (0x10000000UL) /*!< SRAM2(64 KB) base address */
+//#define SRAM3_BASE            (0x20000000UL) /*!< SRAM3(192 KB) base address */
 #define PERIPH_BASE           (0x40000000UL) /*!< Peripheral base address */
 #define FMC_BASE              (0x60000000UL) /*!< FMC base address */
 #define OCTOSPI1_BASE         (0x90000000UL) /*!< OCTOSPI1 memories accessible over AHB base address */
@@ -251,7 +251,7 @@ typedef struct
 #define PERIPH_BB_BASE        (0x42000000UL) /*!< Peripheral base address in the bit-band region */
 
 /* Legacy defines */
-#define SRAM_BASE             SRAM1_BASE
+//#define SRAM_BASE             SRAM1_BASE
 #define SRAM_BB_BASE          SRAM1_BB_BASE
 
 #define SRAM1_SIZE_MAX        (0x00030000UL) /*!< maximum SRAM1 size (up to 192 KBytes) */

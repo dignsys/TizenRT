@@ -61,7 +61,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include <errno.h>
-#include <debug.h>
 
 #include <tinyara/progmem.h>
 #include <tinyara/fs/ioctl.h>

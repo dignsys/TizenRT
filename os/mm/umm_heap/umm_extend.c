@@ -78,7 +78,15 @@
 
 void umm_extend(FAR void *mem, size_t size, int region)
 {
-	mm_extend(USR_HEAP, mem, size, region);
+#if CONFIG_MM_NHEAPS > 0
+	int heap_idx;
+	heap_idx = mm_get_heapindex(mem);
+	if (heap_idx != INVALID_HEAP_IDX) {
+		mm_extend(&g_mmheap[heap_idx], mem, size, region);
+	}
+#else
+	mm_extend(BASE_HEAP, mem, size, region);
+#endif
 }
 
 #endif							/* !CONFIG_BUILD_PROTECTED || !__KERNEL__ */

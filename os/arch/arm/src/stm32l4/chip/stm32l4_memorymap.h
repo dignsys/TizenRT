@@ -85,9 +85,11 @@
                                               /* 0x00100000-0x07ffffff: Reserved */
 #define STM32L4_FLASH_BASE     0x08000000     /* 0x08000000-0x080fffff: FLASH memory */
                                               /* 0x08100000-0x0fffffff: Reserved */
+#ifdef CONFIG_STM32L4_SRAM2_INIT
 #define STM32L4_SRAM2_BASE     0x10000000     /* 0x10000000-0x1000ffff: 16k to 64k SRAM2 */
+#endif
                                               /* 0x10010000-0x1ffeffff: Reserved */
-#define STM32L4_SRAM3_BASE     0x20040000     /* 0x20040000-0x3fffffff: SRAM3 (STM32L4R9xx only, 384k) */
+//#define STM32L4_SRAM3_BASE     0x20040000     /* 0x20040000-0x3fffffff: SRAM3 (STM32L4R9xx only, 384k) */
 #define STM32L4_SYSMEM_BASE    0x1fff0000     /* 0x1fff0000-0x1fff6fff: System memory */
 #define STM32L4_OTP_BASE       0x1fff7000     /* 0x1fff7000-0x1fff73ff: OTP memory */
                                               /* 0x1fff7400-0x1fff77ff: Reserved */

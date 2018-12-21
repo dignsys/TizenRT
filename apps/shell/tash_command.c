@@ -88,9 +88,6 @@ static int tash_exit(int argc, char **args);
 #if defined(CONFIG_BOARDCTL_RESET)
 static int tash_reboot(int argc, char **argv);
 #endif
-#ifdef CONFIG_BRCM_WLAN
-static int  bring_up_cyw43438(int argc, char **args);
-#endif
 
 /****************************************************************************
  * Private Variables
@@ -104,9 +101,6 @@ const static tash_cmdlist_t tash_basic_cmds[] = {
 	{"help",  tash_help,   TASH_EXECMD_SYNC},
 #ifdef CONFIG_TASH_SCRIPT
 	{"sh",    tash_script, TASH_EXECMD_SYNC},
-#endif
-#ifdef CONFIG_BRCM_WLAN
-	{"wifion",  bring_up_cyw43438,   TASH_EXECMD_ASYNC},
 #endif
 #ifndef CONFIG_DISABLE_SIGNALS
 	{"sleep", tash_sleep,  TASH_EXECMD_SYNC},
@@ -182,16 +176,6 @@ static int tash_exit(int argc, char **args)
 	tash_running = FALSE;
 	exit(0);
 }
-
-#if defined CONFIG_BRCM_WLAN
-static int bring_up_cyw43438(int argc, char **args)
-{
-extern	void stm32l4_brcm_wlan_driver_initialize(void);
-	stm32l4_brcm_wlan_driver_initialize();
-
-	return 0;
-}
-#endif
 
 #if defined(CONFIG_BOARDCTL_RESET)
 static int tash_reboot(int argc, char **argv)

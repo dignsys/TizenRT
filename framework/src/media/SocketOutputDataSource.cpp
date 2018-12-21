@@ -99,8 +99,12 @@ bool SocketOutputDataSource::isPrepare()
 
 ssize_t SocketOutputDataSource::write(unsigned char* buf, size_t size)
 {
+	if (size == 0) {
+		return 0;
+	}
+
 	if (!buf) {
-		return (size_t)0;
+		return EOF;
 	}
 
 	return send(mSockFd, buf, size, 0);

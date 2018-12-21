@@ -58,6 +58,8 @@
 
 #include <sys/types.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <stdbool.h>
 #include <assert.h>
 #include <debug.h>
 
@@ -66,8 +68,11 @@
 
 #include <arch/board/board.h>
 
-#if CONFIG_MM_REGIONS > 1
+#include <tinyara/mm/mm.h>
 #include <tinyara/kmalloc.h>
+#if CONFIG_MM_NHEAPS > 0
+#include <tinyara/mm/heap_regioninfo.h>
+bool heapx_is_init[CONFIG_MM_NHEAPS];
 #endif
 
 #if defined(CONFIG_BUILD_PROTECTED) && defined(CONFIG_MM_KERNEL_HEAP)
@@ -108,7 +113,15 @@
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
-
+#ifdef CONFIG_ARCH_CHIP_STM32L4
+#define STM32L4_SRAM_BASE      0x20000000
+#define STM32L4_SRAM2_BASE     0x10000000
+#define STM32L4_SRAM3_BASE     0x20040000
+#define STM32L4_SRAM1_SIZE     (192*1024)
+#define STM32L4_SRAM2_SIZE     (64*1024)
+#define STM32L4_SRAM3_SIZE     (384*1024)
+#define REGION_END    (STM32L4_SRAM3_BASE + STM32L4_SRAM3_SIZE)
+#endif
 /****************************************************************************
  * Name: up_allocate_heap/up_allocate_kheap
  *
@@ -161,9 +174,9 @@ void up_allocate_heap(FAR void **heap_start, size_t *heap_size)
 
 	uintptr_t ubss_start = (uintptr_t)USERSPACE->us_bssstart;
 	uintptr_t ubase = (uintptr_t)USERSPACE->us_bssend;
-	size_t usize = CONFIG_RAM_END - ubase;
+	size_t usize = REGION_END - ubase;
 
-	DEBUGASSERT(ubase < (uintptr_t)CONFIG_RAM_END);
+	DEBUGASSERT(ubase < (uintptr_t)(REGION_END);
 
 	/* zero initialize the user space bss section */
 	memset((void *)ubss_start, 0, (ubase - ubss_start));
@@ -178,7 +191,8 @@ void up_allocate_heap(FAR void **heap_start, size_t *heap_size)
 
 	board_led_on(LED_HEAPALLOCATE);
 	*heap_start = (FAR void *)(g_idle_topstack & ~(0x7));
-	*heap_size = CONFIG_RAM_END - (uint32_t)(*heap_start);
+	*heap_size =  REGION_END - (uint32_t)(*heap_start);
+
 #endif
 }
 
@@ -211,24 +225,20 @@ void up_allocate_kheap(FAR void **heap_start, size_t *heap_size)
 #if CONFIG_MM_REGIONS > 1
 void up_addregion(void)
 {
+#ifdef CONFIG_ARCH_CHIP_STM32L4
+	kumm_addregion((FAR void *)STM32L4_SRAM2_BASE, STM32L4_SRAM2_SIZE);
+	kumm_addregion((FAR void *)STM32L4_SRAM_BASE, STM32L4_SRAM1_SIZE);
+#else
 	int region_cnt;
-	char *mem_start = CONFIG_RAMx_START;
-	char *mem_size = CONFIG_RAMx_SIZE;
 
-	for (region_cnt = 0; region_cnt < CONFIG_MM_REGIONS - 1; region_cnt++) {
-		if (!*mem_start || !*mem_size) {
-			dbg("Fail to add %dth heap region\n", region_cnt + 1);
-			break;
+	for (region_cnt = 1; region_cnt < CONFIG_MM_REGIONS; region_cnt++) {
+		if (heapx_is_init[regionx_heap_idx[region_cnt]] != true) {
+			mm_initialize(&g_mmheap[regionx_heap_idx[region_cnt]], regionx_start[region_cnt], regionx_size[region_cnt]);
+			heapx_is_init[regionx_heap_idx[region_cnt]] = true;
+			continue;
 		}
-		kumm_addregion((void *)strtol(mem_start, &mem_start, 16), (size_t)strtol(mem_size, &mem_size, 0));
-
-		if (*mem_start == ',') {
-			mem_start++;
-		}
-
-		if (*mem_size == ',') {
-			mem_size++;
-		}
+		mm_addregion(&g_mmheap[regionx_heap_idx[region_cnt]], regionx_start[region_cnt], regionx_size[region_cnt]);
 	}
+#endif
 }
 #endif

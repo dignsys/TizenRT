@@ -166,10 +166,11 @@ void up_initialize(void)
 
 	up_color_intstack();
 
+#if defined CONFIG_ARCH_CHIP_STM32L4
 	/* Add any extra memory fragments to the memory manager */
-
+	extern void up_addregion(void);
 	up_addregion();
-
+#endif
 	/* Initialize the interrupt subsystem */
 
 	up_irqinitialize();
@@ -210,6 +211,10 @@ void up_initialize(void)
 
 #if defined(CONFIG_DEV_NULL)
 	devnull_register();			/* Standard /dev/null */
+#endif
+
+#ifdef CONFIG_DEV_URANDOM
+	devurandom_register();			/* /dev/urandom */
 #endif
 
 #if defined(CONFIG_DEV_ZERO)

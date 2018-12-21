@@ -3306,6 +3306,26 @@ int8_t WiFiSaveConfig(void)
 	return result;
 }
 
+int8_t WiFiSetAutoconnect(uint8_t check)
+{
+	int8_t result = BRCM_STATUS_NOT_SUPPORTED;
+
+	ENTER_CRITICAL;
+	if (brcm_get_op_mode() == BRCM_WIFI_STATION_IF) {
+		DPRINT("WiFiSetAutoconnect - set to %d\n", (int)check);
+		brcm_set_autoconnect(check);
+		result = BRCM_STATUS_SUCCESS;
+	} else if (g_state == BRCM_WIFIAPI_STATE_NOT_STARTED) {
+		DPRINT("WiFiSetAutoconnect - not started\n");
+	} else {
+		DPRINT("WiFiSetAutoconnect - not allowed during AP mode\n");
+		result = BRCM_STATUS_NOT_ALLOWED;
+	}
+	LEAVE_CRITICAL;
+
+	return result;
+}
+
 void WiFiinitConfig(void)
 {
 	brcm_wpa_reopen();

@@ -166,7 +166,6 @@ void up_unblock_task(struct tcb_s *tcb)
 			/* Save the task name which will be scheduled */
 			save_task_scheduling_status(nexttcb);
 #endif
-
 			up_switchcontext(rtcb->xcp.regs, nexttcb->xcp.regs);
 
 			/* up_switchcontext forces a context switch to the task at the

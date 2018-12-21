@@ -111,8 +111,6 @@ const int dm_get_wifi_property_interface();
 const int dm_get_ownership_transfer_method();
 const wifi_freq_e dm_get_wifi_property_freq();
 
-struct things_resource_s *dm_get_resource_instance(const char *uri, const int id);
-
 st_device_s *dm_get_info_of_dev(unsigned long number);
 bool dm_register_user_define_device_id(const int seq_thing_info, const char *dev_id);
 bool dm_register_device_id(void);
@@ -128,6 +126,26 @@ bool dm_is_es_complete(void);
 
 bool dm_get_easy_setup_use_artik_crt(void);
 char *dm_get_mnid(void);
+
+/**
+ * Return access token received from cloud.
+ *
+ * Internally loads the cloud information stored in persistent storage,
+ * retrieves access token from it and returns the copy of the same.
+
+ * Note: Memory allocated for return parameter should be released by the caller.
+ */
+char *dm_get_access_token();
+
+/**
+ * Return uid received from cloud.
+ *
+ * Internally loads the cloud information stored in persistent storage,
+ * retrieves access token from it and returns the copy of the same.
+
+ * Note: Memory allocated for return parameter should be released by the caller.
+ */
+char *dm_get_uid();
 
 int dm_validate_attribute_in_request(char *res_type, const void *payload);
 

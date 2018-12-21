@@ -1435,10 +1435,8 @@ config STM32L4_FIREWALL
 config STM32L4_SDMMC1
 	bool "SDMMC1"
 	default n
-	select ARCH_HAVE_SDIO
 	select SCHED_WORKQUEUE
 	select STM32L4_SDMMC
-	select ARCH_HAVE_SDIOWAIT_WRCOMPLETE
 	select ARCH_HAVE_SDIO_PREFLIGHT
 	depends on STM32L4_HAVE_SDMMC1
 
@@ -4034,7 +4032,6 @@ config STM32L4_SDMMC_XFRDEBUG
 config STM32L4_SDMMC_DMA
 	bool "Support DMA data transfers"
 	default n
-	select SDIO_DMA
 	depends on STM32L4_DMA
 	---help---
 		Support DMA data transfers.

@@ -136,26 +136,25 @@
 	.thumb_func
 exception_common:
 
-	mrs	r0, ipsr			/* R0=exception number */
+	mrs		r0, ipsr				/* R0=exception number */
 
 	/* Complete the context save */
 
 	/* The EXC_RETURN value tells us whether the context is on the MSP or PSP */
 
-	tst	r14, #EXC_RETURN_PROCESS_STACK /* nonzero if context on process stack */
-	beq	1f				/* Branch if context already on the MSP */
-	mrs	r1, psp				/* R1=The process stack pointer (PSP) */
-	mov     sp, r1				/* Set the MSP to the PSP */
+	tst		r14, #EXC_RETURN_PROCESS_STACK /* nonzero if context on process stack */
+	beq		1f						/* Branch if context already on the MSP */
+	mrs		r1, psp					/* R1=The process stack pointer (PSP) */
+	mov     sp, r1					/* Set the MSP to the PSP */
 
 1:
-	mov	r2, sp				/* R2=Copy of the main/process stack pointer */
-	add	r2, #HW_XCPT_SIZE		/* R2=MSP/PSP before the interrupt was taken */
-						/* (ignoring the xPSR[9] alignment bit) */
-
+	mov		r2, sp					/* R2=Copy of the main/process stack pointer */
+	add		r2, #HW_XCPT_SIZE		/* R2=MSP/PSP before the interrupt was taken */
+									/* (ignoring the xPSR[9] alignment bit) */
 #ifdef CONFIG_ARMV7M_USEBASEPRI
-	mrs	r3, basepri			/* R3=Current BASEPRI setting */
+	mrs		r3, basepri				/* R3=Current BASEPRI setting */
 #else
-	mrs	r3, primask			/* R3=Current PRIMASK setting */
+	mrs		r3, primask				/* R3=Current PRIMASK setting */
 #endif
 
 #ifdef CONFIG_ARCH_FPU
@@ -189,8 +188,8 @@ exception_common:
 	 * masked.  Nested, high priority may still occur, however.
 	 */
 
-	mov	r2, #NVIC_SYSH_DISABLE_PRIORITY
-	msr	basepri, r2				/* Set the BASEPRI */
+	mov		r2, #NVIC_SYSH_DISABLE_PRIORITY
+	msr		basepri, r2				/* Set the BASEPRI */
 #endif
 
 	/* There are two arguments to up_doirq:
@@ -199,7 +198,7 @@ exception_common:
 	 *   R1 = The top of the stack points to the saved state
 	 */
 
-	mov	r1, sp
+	mov		r1, sp
 
 #if CONFIG_ARCH_INTERRUPTSTACK > 3
 	/* If CONFIG_ARCH_INTERRUPTSTACK is defined, we will set the MSP to use
@@ -207,10 +206,10 @@ exception_common:
 	 * here prohibits nested interrupts without some additional logic!
 	 */
 
-	ldr	sp, =g_intstackbase
+	ldr		sp, =g_intstackbase
 	push	{r1}					/* Save the MSP on the interrupt stack */
-	bl	up_doirq				/* R0=IRQ, R1=register save area on stack */
-	pop	{r1}					/* Recover R1=main stack pointer */
+	bl		up_doirq				/* R0=IRQ, R1=register save area on stack */
+	pop		{r1}					/* Recover R1=main stack pointer */
 
 #else
 	/* Otherwise, we will re-use the interrupted thread's stack.  That may

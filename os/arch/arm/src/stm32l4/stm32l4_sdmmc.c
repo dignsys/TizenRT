@@ -85,7 +85,7 @@
 #include "stm32l4_gpio.h"
 #include "stm32l4_sdmmc.h"
 
-#if defined CONFIG_ARCH_HAVE_SDIO && (defined(CONFIG_STM32L4_SDMMC1) || defined(CONFIG_STM32L4_SDMMC2))
+#if defined(CONFIG_STM32L4_SDMMC1) || defined(CONFIG_STM32L4_SDMMC2)
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -530,9 +530,6 @@ static int stm32_registercallback(FAR struct sdio_dev_s *dev, worker_t callback,
 /* DMA */
 
 #ifdef CONFIG_STM32L4_SDMMC_DMA
-#ifdef CONFIG_ARCH_HAVE_SDIO_PREFLIGHT
-static int stm32_dmapreflight(FAR struct sdio_dev_s *dev, FAR const uint8_t *buffer, size_t buflen);
-#endif
 static int stm32_dmarecvsetup(FAR struct sdio_dev_s *dev, FAR uint8_t *buffer, size_t buflen);
 static int stm32_dmasendsetup(FAR struct sdio_dev_s *dev, FAR const uint8_t *buffer, size_t buflen);
 #endif
@@ -580,15 +577,9 @@ struct stm32_dev_s g_sdmmcdev1 = {
 		.registercallback = stm32_registercallback,
 #endif
 #ifdef CONFIG_STM32L4_SDMMC_DMA
-#ifdef CONFIG_ARCH_HAVE_SDIO_PREFLIGHT
-		.dmapreflight = stm32_dmapreflight,
-#endif
 		.dmarecvsetup = stm32_dmarecvsetup,
 		.dmasendsetup = stm32_dmasendsetup,
 #else
-#ifdef CONFIG_ARCH_HAVE_SDIO_PREFLIGHT
-		.dmapreflight = NULL,
-#endif
 		.dmarecvsetup = stm32_recvsetup,
 		.dmasendsetup = stm32_sendsetup,
 #endif
@@ -640,9 +631,6 @@ struct stm32_dev_s g_sdmmcdev2 = {
 		.registercallback = stm32_registercallback,
 #endif
 #ifdef CONFIG_STM32L4_SDMMC_DMA
-#ifdef CONFIG_ARCH_HAVE_SDIO_PREFLIGHT
-		.dmapreflight = stm32_dmapreflight,
-#endif
 		.dmarecvsetup = stm32_dmarecvsetup,
 		.dmasendsetup = stm32_dmasendsetup,
 #endif
@@ -2661,39 +2649,6 @@ static int stm32_registercallback(FAR struct sdio_dev_s *dev, worker_t callback,
 }
 
 /****************************************************************************
- * Name: stm32_dmapreflight
- *
- * Description:
- *   Preflight an SDIO DMA operation.  If the buffer is not well-formed for
- *   SDIO DMA transfer (alignment, size, etc.) returns an error.
- *
- * Input Parameters:
- *   dev    - An instance of the SDIO device interface
- *   buffer - The memory to DMA to/from
- *   buflen - The size of the DMA transfer in bytes
- *
- * Returned Value:
- *   OK on success; a negated errno on failure
- ****************************************************************************/
-
-#if defined(CONFIG_STM32L4_SDMMC_DMA) && defined(CONFIG_ARCH_HAVE_SDIO_PREFLIGHT)
-static int stm32_dmapreflight(FAR struct sdio_dev_s *dev, FAR const uint8_t *buffer, size_t buflen)
-{
-	struct stm32_dev_s *priv = (struct stm32_dev_s *)dev;
-
-	DEBUGASSERT(priv != NULL && buffer != NULL && buflen > 0);
-
-	/* DMA must be possible to the buffer */
-
-	if (!stm32l4_dmacapable((uintptr_t) buffer, (buflen + 3) >> 2, SDMMC_RXDMA32_CONFIG | priv->dmapri)) {
-		return -EFAULT;
-	}
-
-	return 0;
-}
-#endif
-
-/****************************************************************************
  * Name: stm32_dmarecvsetup
  *
  * Description:
@@ -2719,9 +2674,6 @@ static int stm32_dmarecvsetup(FAR struct sdio_dev_s *dev, FAR uint8_t *buffer, s
 	uint32_t dblocksize;
 
 	DEBUGASSERT(priv != NULL && buffer != NULL && buflen > 0);
-#ifdef CONFIG_ARCH_HAVE_SDIO_PREFLIGHT
-	DEBUGASSERT(stm32_dmapreflight(dev, buffer, buflen) == 0);
-#else
 #if defined(CONFIG_ARMV7M_DCACHE) && !defined(CONFIG_ARMV7M_DCACHE_WRITETHROUGH)
 	/* buffer alignment is required for DMA transfers with dcache in buffered
 	 * mode (not write-through) because the arch_invalidate_dcache could lose
@@ -2732,8 +2684,6 @@ static int stm32_dmarecvsetup(FAR struct sdio_dev_s *dev, FAR uint8_t *buffer, s
 	if (((uintptr_t) buffer & (ARMV7M_DCACHE_LINESIZE - 1)) != 0 || (buflen & (ARMV7M_DCACHE_LINESIZE - 1)) != 0) {
 		return -EFAULT;
 	}
-#endif
-
 #endif
 
 	/* Reset the DPSM configuration */
@@ -2800,9 +2750,6 @@ static int stm32_dmasendsetup(FAR struct sdio_dev_s *dev, FAR const uint8_t *buf
 	uint32_t dblocksize;
 
 	DEBUGASSERT(priv != NULL && buffer != NULL && buflen > 0);
-#ifdef CONFIG_ARCH_HAVE_SDIO_PREFLIGHT
-	DEBUGASSERT(stm32_dmapreflight(dev, buffer, buflen) == 0);
-#else
 #if defined(CONFIG_ARMV7M_DCACHE) && !defined(CONFIG_ARMV7M_DCACHE_WRITETHROUGH)
 	/* buffer alignment is required for DMA transfers with dcache in buffered
 	 * mode (not write-through) because the arch_flush_dcache would corrupt adjacent
@@ -2813,7 +2760,6 @@ static int stm32_dmasendsetup(FAR struct sdio_dev_s *dev, FAR const uint8_t *buf
 	if (((uintptr_t) buffer & (ARMV7M_DCACHE_LINESIZE - 1)) != 0 || (buflen & (ARMV7M_DCACHE_LINESIZE - 1)) != 0) {
 		return -EFAULT;
 	}
-#endif
 #endif
 
 	/* Reset the DPSM configuration */

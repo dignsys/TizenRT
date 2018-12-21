@@ -71,7 +71,34 @@
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
+/************************************************************************
+ * Name: memalign_at
+ *
+ * Description:
+ *   memalign to the specific heap.
+ *   memalign_at tries to align the memory for a specific heap which passed by api argument.
+ *   If there is no enough space, it will return NULL.
+ *
+ * Return Value:
+ *   The address of the allocated memory (NULL on failure to allocate)
+ *
+ ************************************************************************/
 
+#if CONFIG_MM_NHEAPS > 1
+void *memalign_at(int heap_index, size_t alignment, size_t size)
+{
+	if (heap_index >= CONFIG_MM_NHEAPS || heap_index < 0) {
+		mdbg("memalign_at failed. Wrong heap index (%d) of (%d)\n", heap_index, CONFIG_MM_NHEAPS);
+		return NULL;
+	}
+#ifdef CONFIG_DEBUG_MM_HEAPINFO
+	ARCH_GET_RET_ADDRESS
+	return mm_memalign(&g_mmheap[heap_index], alignment, size, retaddr);
+#else
+	return mm_memalign(&g_mmheap[heap_index], alignment, size);
+#endif
+}
+#endif
 /****************************************************************************
  * Name: memalign
  *
@@ -87,11 +114,30 @@
 
 FAR void *memalign(size_t alignment, size_t size)
 {
-#ifdef CONFIG_DEBUG_MM_HEAPINFO
+#if CONFIG_MM_NHEAPS > 0
+	int heap_idx;
+	void *ret;
+	#ifdef CONFIG_DEBUG_MM_HEAPINFO
 	ARCH_GET_RET_ADDRESS
-	return mm_memalign(USR_HEAP, alignment, size, retaddr);
+	#endif
+	for (heap_idx = 0; heap_idx < CONFIG_MM_NHEAPS; heap_idx++) {
+	#ifdef CONFIG_DEBUG_MM_HEAPINFO
+		ret = mm_memalign(&g_mmheap[heap_idx], alignment, size, retaddr);
+	#else
+		ret = mm_memalign(&g_mmheap[heap_idx], alignment, size);
+	#endif
+		if (ret != NULL) {
+			return ret;
+		}
+	}
+	return NULL;
 #else
-	return mm_memalign(USR_HEAP, alignment, size);
+	#ifdef CONFIG_DEBUG_MM_HEAPINFO
+	ARCH_GET_RET_ADDRESS
+	return mm_memalign(BASE_HEAP, alignment, size, retaddr);
+	#else
+	return mm_memalign(BASE_HEAP, alignment, size);
+	#endif
 #endif
 }
 

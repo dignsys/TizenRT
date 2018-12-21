@@ -65,7 +65,11 @@
 
 #include <tinyara/wqueue.h>
 
-/****************************************************************************
+#if defined CONFIG_STM32L4_SDMMC_DMA && !defined CONFIG_SDIO_DMA
+#define CONFIG_SDIO_DMA
+#endif
+ 
+ /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
 
@@ -893,7 +897,7 @@ struct sdio_dev_s {
 
 	void (*reset)(FAR struct sdio_dev_s *dev);
 	sdio_capset_t (*capabilities)(FAR struct sdio_dev_s *dev);
-	sdio_statset_t (*status)(FAR struct sdio_dev_s *dev);
+	uint8_t (*status)(FAR struct sdio_dev_s *dev);
 	void (*widebus)(FAR struct sdio_dev_s *dev, bool enable);
 	void (*clock)(FAR struct sdio_dev_s *dev, enum sdio_clock_e rate);
 	int (*attach)(FAR struct sdio_dev_s *dev);
