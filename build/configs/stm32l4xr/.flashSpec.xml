@@ -17,7 +17,7 @@
 <flash name="stm32l4rx flash" virtual="false">
     <!-- path attribute value must be relative path from project root -->
     <executors>
-		<execute name="flash" path="${PROJECT_PATH}/build/output/bin" command="st-flash --reset write ${PROJECT_PATH}/build/output/bin/tinyara.bin" os="linux" bit="all"></execute>
+		<execute name="flash" path="${PROJECT_PATH}/build/configs/stm32l4xr" command="sh ${PROJECT_PATH}/build/configs/stm32l4xr/mk_stm32_romfs.sh ${PROJECT_PATH}" os="linux" bit="all"></execute>
     </executors>
     <options>
         <option desc="Flash Address">0x8000000</option>
